@@ -43,6 +43,8 @@ def label(meta):
     version = meta.get("Compiler", meta.get("Runtime", "Unknown"))
     if "CUDA" in version:
         return "CUDA · " + meta.get("Device", version)
+    if version.startswith("Python"):
+        return "Python · " + version
     if version.startswith(".NET"):
         return "C# · " + version
     if version.lower().startswith("go"):
@@ -70,16 +72,23 @@ def parse_logs(text, source="log"):
                 # 마지막 Validation 필드는 실제 PASS/FAIL 결과입니다.
                 meta[key.strip()] = value.strip()
                 continue
+            if table_mode == "GPU_E2E" and not pair_section:
+                e2e_match = re.match(rf"^\s*(\d+)\s+({NUMBER})\s+({NUMBER})\s+({NUMBER})\s+({NUMBER})x\s+({NUMBER})x\s*$", line)
+                if e2e_match:
+                    rank, cpu_ms, gpu_ms, e2e_ms, gpu_speedup, _ = e2e_match.groups()
+                    trials.append({"trial": int(rank), "cpu_ms": float(cpu_ms), "accelerated_ms": float(gpu_ms), "logged_speedup": float(gpu_speedup), "gpu_e2e_ms": float(e2e_ms)})
             match = TRIAL.match(line)
-            if match and not pair_section:
+            if match and not pair_section and table_mode != "GPU_E2E":
                 rank, cpu, accelerated, speedup = match.groups()
                 trials.append({"trial": int(rank), "cpu_ms": float(cpu), "accelerated_ms": float(accelerated), "logged_speedup": float(speedup)})
+            if "GPU E2E(ms)" in line:
+                table_mode = "GPU_E2E"
             if pair_section:
                 match = PAIR.match(line)
                 if match:
                     rank, a, b, samples, correlation = match.groups()
                     pairs.append({"rank": int(rank), "a": a.strip(), "b": b.strip(), "samples": int(samples), "correlation": float(correlation)})
-        mode = table_mode or ("GPU" if "GPU average" in meta else "SIMD")
+        mode = "GPU" if "GPU average" in meta else "SIMD"
         loops = integer(meta.get("Loops"))
         warnings = []
         if not loops or loops < 1:
@@ -117,6 +126,12 @@ def parse_logs(text, source="log"):
         # 이름이 같더라도 기간/크기가 다르면 별개의 데이터 그룹으로 처리합니다.
         identity = (file.replace("\\", "/").split("/")[-1], meta.get("Period", ""), meta.get("Array", ""), integer(meta.get("Pairs")), integer(meta.get("Observations")))
         records.append({"source": source, "label": label(meta), "meta": meta, "file": file, "identity": identity, "mode": mode, "loops": loops, "trials": trials, "pairs": pairs, "cpu_mean": cpu_mean, "accel_mean": accel_mean, "cpu_run": cpu_run, "accel_run": accel_run, "speedup": cpu_mean / accel_mean if cpu_mean is not None and accel_mean is not None and accel_mean > 0 else None, "error": number(meta.get("Max abs error")), "status": status, "warnings": warnings})
+        if "GPU E2E average" in meta:
+            e2e_values = [t["gpu_e2e_ms"] for t in trials if "gpu_e2e_ms" in t]
+            if e2e_values:
+                records[-1]["gpu_e2e"] = {"values": e2e_values, "mean": statistics.mean(e2e_values), "speedup": cpu_mean / statistics.mean(e2e_values) if cpu_mean else None}
+                if len(e2e_values) != len(trials):
+                    records[-1]["warnings"].append("CUDA end-to-end 측정 회차가 일부 누락되었습니다.")
     return records
 
 
@@ -156,6 +171,7 @@ def build_report(records, source):
             "preprocess_ms": number(m.get("Preprocess")),
             "upload_ms": number(m.get("Upload")),
             "gpu_timing": m.get("GPU timing", ""),
+            "gpu_e2e_timing": m.get("GPU end-to-end", ""),
             "tolerance": number(m.get("Tolerance")),
             "undefined": integer(m.get("Undefined")),
             "sample_min": int(sample_meta.group(1)) if sample_meta else min(sample_counts) if sample_counts else None,
@@ -185,6 +201,10 @@ def build_report(records, source):
             "simd_per_run_ms": r["accel_run"],
             "cpu_checksum": number(m.get("CPU checksum")),
             "simd_checksum": number(m.get(mode + " checksum")),
+            "gpu_e2e_average_ms": r.get("gpu_e2e", {}).get("mean"),
+            "gpu_e2e_median_ms": statistics.median(r["gpu_e2e"]["values"]) if r.get("gpu_e2e") else None,
+            "gpu_e2e_min_ms": min(r["gpu_e2e"]["values"]) if r.get("gpu_e2e") else None,
+            "gpu_e2e_speedup": r.get("gpu_e2e", {}).get("speedup"),
         }
         results.append({
             "id": "result-" + str(index),
@@ -193,7 +213,7 @@ def build_report(records, source):
             "backend": "CUDA GPU" if gpu else "CPU SIMD",
             "metadata": metadata,
             "summary": summary,
-            "trials": [{"trial": t["trial"], "cpu_ms": t["cpu_ms"], "simd_ms": t["accelerated_ms"], "speedup": t["cpu_ms"] / t["accelerated_ms"]} for t in r["trials"]],
+            "trials": [{"trial": t["trial"], "cpu_ms": t["cpu_ms"], "simd_ms": t["accelerated_ms"], "speedup": t["cpu_ms"] / t["accelerated_ms"], "gpu_e2e_ms": t.get("gpu_e2e_ms")} for t in r["trials"]],
             "top_pairs": [{"rank": p["rank"], "region_a": p["a"], "region_b": p["b"], "samples": p["samples"], "correlation": p["correlation"]} for p in r["pairs"]],
             "warnings": r["warnings"],
         })

@@ -408,6 +408,20 @@ void downloadResult(const DeviceData &device, std::vector<double> &output)
     CUDA_CHECK(cudaMemcpy(output.data(), device.output, output.size() * sizeof(double), cudaMemcpyDeviceToHost));
 }
 
+double benchmarkGPUEndToEnd(const Dataset &data, std::vector<double> &output, int pairs, int loops)
+{
+    const auto start = Clock::now();
+    for (int i = 0; i < loops; ++i)
+    {
+        DeviceData device;
+        uploadData(data, device);
+        calculateGPU<<<pairs, Threads, 0, device.stream>>>(device.x, device.y, device.offsets, device.output);
+        CUDA_CHECK(cudaGetLastError());
+        downloadResult(device, output);
+    }
+    return std::chrono::duration<double, std::milli>(Clock::now() - start).count();
+}
+
 using Kernel = void (*)(const std::vector<PairData> &, std::vector<double> &);
 
 NOINLINE double benchmarkCPU(const std::vector<PairData> &pairs, std::vector<double> &output, int loops)
@@ -561,6 +575,7 @@ int main(int argc, char **argv)
         std::printf("Upload        : %.3f ms / packing + allocation + upload / excluded\n", uploadMs);
         std::printf("Timing        : Wall time; pair means + covariance + correlation\n");
         std::printf("GPU timing    : Launch + final synchronization included; transfers excluded\n");
+        std::printf("GPU end-to-end: Allocation + packing + H2D + kernel + D2H included\n");
         std::printf("Loops         : %d per trial\n", loops);
         std::printf("Trials        : %d\n", Trials);
         std::printf("Validation    : Absolute tolerance %.1e; zero-variance pairs are undefined\n\n", Tolerance);
@@ -575,26 +590,30 @@ int main(int argc, char **argv)
         downloadResult(device, gpu);
 
         double maxError = validate(cpu, gpu);
-        double cpuTotal = 0, gpuTotal = 0;
-        std::printf("%-8s %14s %14s %12s\n", "Trial", "CPU(ms)", "GPU(ms)", "Speedup");
+        double cpuTotal = 0, gpuTotal = 0, gpuEndToEndTotal = 0;
+        std::printf("%-8s %14s %14s %14s %12s %12s\n", "Trial", "CPU(ms)", "GPU(ms)", "GPU E2E(ms)", "GPU speedup", "E2E speedup");
         for (int trial = 0; trial < Trials; ++trial)
         {
-            double cpuMs, gpuMs;
+            double cpuMs, gpuMs, gpuEndToEndMs;
             if (trial % 2 == 0)
             {
                 cpuMs = benchmarkCPU(data.pairs, cpu, loops);
                 gpuMs = benchmarkGPU(device, pairCount, loops);
+                gpuEndToEndMs = benchmarkGPUEndToEnd(data, gpu, pairCount, loops);
             }
             else
             {
                 gpuMs = benchmarkGPU(device, pairCount, loops);
                 cpuMs = benchmarkCPU(data.pairs, cpu, loops);
+                gpuEndToEndMs = benchmarkGPUEndToEnd(data, gpu, pairCount, loops);
             }
+            maxError = std::max(maxError, validate(cpu, gpu));
             downloadResult(device, gpu);
             maxError = std::max(maxError, validate(cpu, gpu));
             cpuTotal += cpuMs;
             gpuTotal += gpuMs;
-            std::printf("%-8d %14.3f %14.3f %11.2fx\n", trial + 1, cpuMs, gpuMs, cpuMs / gpuMs);
+            gpuEndToEndTotal += gpuEndToEndMs;
+            std::printf("%-8d %14.3f %14.3f %14.3f %11.2fx %11.2fx\n", trial + 1, cpuMs, gpuMs, gpuEndToEndMs, cpuMs / gpuMs, cpuMs / gpuEndToEndMs);
         }
 
         double cpuChecksum = 0, gpuChecksum = 0;
@@ -617,6 +636,8 @@ int main(int argc, char **argv)
         std::printf("CPU average   : %.3f ms\n", cpuTotal / Trials);
         std::printf("GPU average   : %.3f ms\n", gpuTotal / Trials);
         std::printf("GPU speedup   : %.2fx\n", cpuTotal / gpuTotal);
+        std::printf("GPU E2E average: %.3f ms\n", gpuEndToEndTotal / Trials);
+        std::printf("GPU E2E speedup: %.2fx\n", cpuTotal / gpuEndToEndTotal);
         std::printf("CPU per run   : %.6f ms\n", cpuTotal / Trials / loops);
         std::printf("GPU per run   : %.6f ms\n", gpuTotal / Trials / loops);
         if (cpuTotal >= gpuTotal)

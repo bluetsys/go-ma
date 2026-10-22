@@ -11,29 +11,29 @@ Missing       : 8523 prices / excluded, not zero-filled
 Pairs         : 151 / common consecutive-day returns only
 Observations  : 889329 across all pairs
 Sample counts : 97 / 6748 / 6748 (min / median / max)
-Preprocess    : 36.280 ms / excluded from benchmark
+Preprocess    : 35.501 ms / excluded from benchmark
 Timing        : Pair means + centered covariance + correlation
 Loops         : 100 per trial
 Trials        : 5
 Validation    : Absolute tolerance 1.0e-10; zero-variance pairs are undefined
 
 Trial           CPU(ms)       SIMD(ms)      Speedup
-1                89.836         34.587        2.60x
-2                88.636         34.629        2.56x
-3                87.465         32.932        2.66x
-4                88.817         32.498        2.73x
-5                88.834         31.535        2.82x
+1                88.763         32.728        2.71x
+2                94.914         32.617        2.91x
+3               109.678         43.744        2.51x
+4                95.444         38.744        2.46x
+5                87.276         33.057        2.64x
 
 CPU checksum  : 123.937354174232
 SIMD checksum : 123.937354174232
 Max abs error : 4.99600361081e-15
 Validation    : PASS (151 pairs / tolerance 1.0e-10)
 Undefined     : 0 zero-variance pairs
-CPU average   : 88.717 ms
-SIMD average  : 33.236 ms
-SIMD speedup  : 2.67x
-CPU per run   : 0.887174 ms
-SIMD per run  : 0.332362 ms
+CPU average   : 95.215 ms
+SIMD average  : 36.178 ms
+SIMD speedup  : 2.63x
+CPU per run   : 0.952150 ms
+SIMD per run  : 0.361779 ms
 
 일별 가격 변동률 상관계수 상위 10개 지역 쌍
 순위    지역 A      지역 B           Samples      Correlation
@@ -61,33 +61,36 @@ Missing       : 8523 prices / excluded, not zero-filled
 Pairs         : 151 / common consecutive-day returns only
 Observations  : 889329 across all pairs
 Sample counts : 97 / 6748 / 6748 (min / median / max)
-Preprocess    : 33.395 ms / excluded from benchmark
-Upload        : 8.098 ms / packing + allocation + upload / excluded
+Preprocess    : 39.684 ms / excluded from benchmark
+Upload        : 9.779 ms / packing + allocation + upload / excluded
 Timing        : Wall time; pair means + covariance + correlation
 GPU timing    : Launch + final synchronization included; transfers excluded
+GPU end-to-end: Allocation + packing + H2D + kernel + D2H included
 Loops         : 100 per trial
 Trials        : 5
 Validation    : Absolute tolerance 1.0e-10; zero-variance pairs are undefined
 
-Trial           CPU(ms)        GPU(ms)      Speedup
-1                83.806          7.384       11.35x
-2                84.920          6.855       12.39x
-3                89.211          6.334       14.09x
-4               104.116          7.113       14.64x
-5               107.671          6.626       16.25x
+Trial           CPU(ms)        GPU(ms)    GPU E2E(ms)  GPU speedup  E2E speedup
+1               102.659          6.640        865.287       15.46x        0.12x
+2               111.264          6.919        795.910       16.08x        0.14x
+3                89.564          6.557        724.430       13.66x        0.12x
+4                88.166          6.379        828.254       13.82x        0.11x
+5               102.138          6.816        786.601       14.99x        0.13x
 
 CPU checksum  : 123.937354174232
 GPU checksum  : 123.937354174232
 Max abs error : 3.88578058619e-15
 Validation    : PASS (151 pairs / tolerance 1.0e-10)
 Undefined     : 0 zero-variance pairs
-CPU average   : 93.945 ms
-GPU average   : 6.862 ms
-GPU speedup   : 13.69x
-CPU per run   : 0.939449 ms
-GPU per run   : 0.068624 ms
+CPU average   : 98.758 ms
+GPU average   : 6.662 ms
+GPU speedup   : 14.82x
+GPU E2E average: 800.096 ms
+GPU E2E speedup: 0.12x
+CPU per run   : 0.987581 ms
+GPU per run   : 0.066621 ms
 
-GPU가 CPU보다 약 13.69배 빠릅니다.
+GPU가 CPU보다 약 14.82배 빠릅니다.
 
 일별 가격 변동률 상관계수 상위 10개 지역 쌍
 순위    지역 A      지역 B           Samples      Correlation
@@ -113,7 +116,7 @@ Period        : 20080415 - 20261006
 Missing       : 8523 / excluded, not zero-filled
 Pairs         : 151
 Observations  : 889329
-Preprocess    : 76.816 ms / excluded
+Preprocess    : 99.220 ms / excluded
 Timing        : Pair means + centered covariance + correlation
 Loops         : 100 per trial
 Trials        : 5
@@ -121,22 +124,22 @@ Tolerance     : 1.0E-010
 Sample counts : 97 / 6748 / 6748 (min / median / max)
 
 Trial           CPU(ms)       SIMD(ms)      Speedup
-1                86.912         31.404        2.77x
-2                87.537         32.002        2.74x
-3                90.514         32.804        2.76x
-4                84.040         32.275        2.60x
-5                97.913         36.038        2.72x
+1               102.164         34.985        2.92x
+2                88.692         35.888        2.47x
+3                96.109         37.972        2.53x
+4                84.781         39.023        2.17x
+5               137.956         46.228        2.98x
 
 CPU checksum  : 123.937354174232
 SIMD checksum : 123.937354174232
 Max abs error : 4.99600361081E-15
 Validation    : PASS (151 pairs / tolerance 1.0E-010)
 Undefined     : 0 zero-variance pairs
-CPU average   : 89.383 ms
-SIMD average  : 32.905 ms
-SIMD speedup  : 2.72x
-CPU per run   : 0.893830 ms
-SIMD per run  : 0.329047 ms
+CPU average   : 101.940 ms
+SIMD average  : 38.819 ms
+SIMD speedup  : 2.63x
+CPU per run   : 1.019402 ms
+SIMD per run  : 0.388194 ms
 
 일별 가격 변동률 상관계수 상위 10개 지역 쌍
 순위    지역 A      지역 B           Samples      Correlation
@@ -163,29 +166,29 @@ Missing       : 8523 / excluded, not zero-filled
 Pairs         : 151
 Observations  : 889329
 Sample counts : 97 / 6748 / 6748 (min / median / max)
-Preprocess    : 25.836 ms / excluded
+Preprocess    : 27.379 ms / excluded
 Timing        : Pair means + centered covariance + correlation
 Loops         : 100 per trial
 Trials        : 5
 Tolerance     : 1.0e-10
 
 Trial           CPU(ms)       SIMD(ms)      Speedup
-1               105.714         66.075        1.60x
-2                85.419         51.919        1.65x
-3                87.817         46.092        1.91x
-4                94.170         48.111        1.96x
-5               116.125         51.034        2.28x
+1               115.345         53.161        2.17x
+2                96.104         56.718        1.69x
+3               113.705         47.688        2.38x
+4                89.919         52.904        1.70x
+5                95.311         52.302        1.82x
 
 CPU checksum  : 123.937354174232
 SIMD checksum : 123.937354174232
 Max abs error : 4.99600361081e-15
 Validation    : PASS (151 pairs / tolerance 1.0e-10)
 Undefined     : 0 zero-variance pairs
-CPU average   : 97.849 ms
-SIMD average  : 52.646 ms
-SIMD speedup  : 1.86x
-CPU per run   : 0.978491 ms
-SIMD per run  : 0.526463 ms
+CPU average   : 102.077 ms
+SIMD average  : 52.555 ms
+SIMD speedup  : 1.94x
+CPU per run   : 1.020767 ms
+SIMD per run  : 0.525549 ms
 
 일별 가격 변동률 상관계수 상위 10개 지역 쌍
 순위    지역 A      지역 B           Samples      Correlation
@@ -212,29 +215,29 @@ Missing       : 8523 prices / excluded, not zero-filled
 Pairs         : 151 / common consecutive-day returns only
 Observations  : 889329 across all pairs
 Sample counts : 97 / 6748 / 6748 (min / median / max)
-Preprocess    : 39.722 ms / excluded from benchmark
+Preprocess    : 47.357 ms / excluded from benchmark
 Timing        : Pair means + centered covariance + correlation
 Loops         : 100 per trial
 Trials        : 5
 Validation    : Absolute tolerance 1.0e-10; zero-variance pairs are undefined
 
 Trial           CPU(ms)       SIMD(ms)      Speedup
-1               104.548         44.865        2.33x
-2                97.137         39.815        2.44x
-3                87.156         31.083        2.80x
-4                86.311         31.594        2.73x
-5                85.008         32.418        2.62x
+1               104.975         37.383        2.81x
+2               102.213         40.811        2.50x
+3                84.465         34.407        2.45x
+4                83.328         33.326        2.50x
+5                84.551         30.778        2.75x
 
 CPU checksum  : 123.937354174232
 SIMD checksum : 123.937354174232
 Max abs error : 4.99600361081e-15
 Validation    : PASS (151 pairs / tolerance 1.0e-10)
 Undefined     : 0 zero-variance pairs
-CPU average   : 92.032 ms
-SIMD average  : 35.955 ms
-SIMD speedup  : 2.56x
-CPU per run   : 0.920317 ms
-SIMD per run  : 0.359549 ms
+CPU average   : 91.906 ms
+SIMD average  : 35.341 ms
+SIMD speedup  : 2.60x
+CPU per run   : 0.919064 ms
+SIMD per run  : 0.353412 ms
 
 일별 가격 변동률 상관계수 상위 10개 지역 쌍
 순위    지역 A      지역 B           Samples      Correlation
@@ -262,8 +265,8 @@ Missing       : 8523 prices / excluded, not zero-filled
 Pairs         : 151 / common consecutive-day returns only
 Observations  : 889329 across all pairs
 Sample counts : 97 / 6748 / 6748 (min / median / max)
-Preprocess    : 211.955 ms / CSV + returns + padded tensors / excluded
-Upload        : 4.416 ms / allocation + upload / excluded
+Preprocess    : 238.662 ms / CSV + returns + padded tensors / excluded
+Upload        : 6.215 ms / allocation + upload / excluded
 Timing        : Wall time; means + centered covariance + correlation; tensor temporaries included
 GPU timing    : Python dispatch + kernel launches + final sync included
 Transfers     : Excluded from timing; inputs remain on device
@@ -273,22 +276,22 @@ Trials        : 5
 Validation    : Absolute tolerance 1.0e-10; zero-variance pairs are undefined
 
 Trial           CPU(ms)       SIMD(ms)      Speedup
-1               624.904         62.565        9.99x
-2               680.185         52.336       13.00x
-3               735.780         52.001       14.15x
-4               744.670         50.376       14.78x
-5               545.432         47.443       11.50x
+1               692.973         48.552       14.27x
+2               794.455         49.679       15.99x
+3               700.589         50.425       13.89x
+4               697.886         48.855       14.28x
+5               599.079         52.480       11.42x
 
 CPU checksum  : 123.937354174232
 SIMD checksum : 123.937354174232
 Max abs error : 5.55111512313e-16
 Validation    : PASS (151 pairs / tolerance 1.0e-10)
 Undefined     : 0 zero-variance pairs
-CPU average   : 666.194 ms
-SIMD average  : 52.944 ms
-SIMD speedup  : 12.58x
-CPU per run   : 6.661941 ms
-SIMD per run  : 0.529443 ms
+CPU average   : 696.996 ms
+SIMD average  : 49.998 ms
+SIMD speedup  : 13.94x
+CPU per run   : 6.969964 ms
+SIMD per run  : 0.499983 ms
 
 일별 가격 변동률 상관계수 상위 10개 지역 쌍
 순위    지역 A      지역 B           Samples      Correlation

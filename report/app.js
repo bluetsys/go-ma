@@ -97,27 +97,30 @@ function draw() {
     const cpuKey = `cpu_${stat}_ms`;
     const simdKey = `simd_${stat}_ms`;
     const rows = report.results;
-    const maximum = rows.reduce((max, row) => Math.max(max, row.summary[cpuKey], row.summary[simdKey]), 0);
+    const maximum = rows.reduce((max, row) => Math.max(max, row.summary[cpuKey], row.summary[simdKey], row.summary[`gpu_e2e_${stat}_ms`] ?? 0), 0);
 
     $("comparison").innerHTML = rows.map(row => {
         const className = row.backend === "CUDA GPU" ? "gpu" : "simd";
+        const acceleratedLabel = row.backend === "CUDA GPU" ? "GPU (복사 제외)" : "SIMD";
         return `<div class="group">
             <div class="group-title">${escapeHTML(row.label)}</div>
             ${bar("CPU", row.summary[cpuKey], maximum, "cpu")}
-            ${bar("SIMD", row.summary[simdKey], maximum, className)}
+            ${bar(acceleratedLabel, row.summary[simdKey], maximum, className)}
+            ${row.summary.gpu_e2e_average_ms == null ? "" : bar("GPU (복사 포함)", row.summary[`gpu_e2e_${stat}_ms`], maximum, "gpu")}
         </div>`;
     }).join("") + scale(maximum);
 
-    const sorted = [...rows].sort((a, b) => a.summary[simdKey] - b.summary[simdKey]);
-    const simdMaximum = sorted.reduce((max, row) => Math.max(max, row.summary[simdKey]), 0);
+    const simdItems = rows.flatMap(row => {
+        const items = [{label: row.label, value: row.summary[simdKey], mode: row.backend === "CUDA GPU" ? "GPU (복사 제외)" : "SIMD", className: row.backend === "CUDA GPU" ? "gpu" : "simd"}];
+        if (row.summary.gpu_e2e_average_ms != null) items.push({label: row.label, value: row.summary[`gpu_e2e_${stat}_ms`], mode: "GPU (복사 포함)", className: "gpu"});
+        return items;
+    }).sort((a, b) => a.value - b.value);
+    const simdMaximum = simdItems.reduce((max, item) => Math.max(max, item.value), 0);
 
-    $("ranking").innerHTML = sorted.map(row => {
-        const className = row.backend === "CUDA GPU" ? "gpu" : "simd";
-        return `<div class="group">
-            <div class="group-title">${escapeHTML(row.label)}</div>
-            ${bar("SIMD", row.summary[simdKey], simdMaximum, className)}
-        </div>`;
-    }).join("") + scale(simdMaximum);
+    $("ranking").innerHTML = simdItems.map(item => `<div class="group">
+        <div class="group-title">${escapeHTML(item.label)} · ${escapeHTML(item.mode)}</div>
+        ${bar(item.mode, item.value, simdMaximum, item.className)}
+    </div>`).join("") + scale(simdMaximum);
 
     const cpuSorted = [...rows].sort((a, b) => a.summary[cpuKey] - b.summary[cpuKey]);
     const cpuMaximum = cpuSorted.reduce((max, row) => Math.max(max, row.summary[cpuKey]), 0);
@@ -142,10 +145,11 @@ function draw() {
         },
         {
             label: row.label,
-            mode: row.backend === "CUDA GPU" ? "SIMD (GPU)" : "SIMD",
+            mode: row.backend === "CUDA GPU" ? "GPU (복사 제외)" : "SIMD",
             value: row.summary[simdKey],
             className: row.backend === "CUDA GPU" ? "gpu" : "simd"
-        }
+        },
+        ...(row.summary.gpu_e2e_average_ms == null ? [] : [{label: row.label, mode: "GPU (복사 포함)", value: row.summary[`gpu_e2e_${stat}_ms`], className: "gpu"}])
     ]).sort((a, b) => a.value - b.value);
 
     const combinedMaximum = combined.reduce((max, item) => Math.max(max, item.value), 0);
@@ -161,6 +165,7 @@ function draw() {
         <td>${escapeHTML(item.mode)}</td>
         <td>${format(item.value)}</td>
     </tr>`).join("");
+    $("combined-title").textContent = `4. SIMD · CPU 통합 비교 (${combined.length}개 항목)`;
 
     const statLabel = { average: "평균", median: "중앙값", min: "최소" }[stat];
     $("cpu-stat-heading").textContent = `${statLabel} 시간 (ms)`;
@@ -186,6 +191,15 @@ function validate(data) {
             if (!Number.isFinite(row.summary[key]) || row.summary[key] < 0) {
                 throw new Error(`유효하지 않은 측정값: ${row.label} / ${key}`);
             }
+        }
+        if (row.label.startsWith("CUDA · ") && row.summary.gpu_e2e_average_ms == null) {
+            throw new Error(`CUDA 메모리 복사 포함 측정값이 없습니다: ${row.label}`);
+        }
+        if (row.summary.gpu_e2e_average_ms != null && (!Number.isFinite(row.summary.gpu_e2e_average_ms) || row.summary.gpu_e2e_average_ms <= 0)) {
+            throw new Error(`유효하지 않은 CUDA 전송 포함 시간: ${row.label}`);
+        }
+        if (row.trials.some(trial => trial.gpu_e2e_ms != null && (!Number.isFinite(trial.gpu_e2e_ms) || trial.gpu_e2e_ms <= 0))) {
+            throw new Error(`유효하지 않은 CUDA 전송 포함 회차 시간: ${row.label}`);
         }
         if (!row.id || typeof row.label !== "string" || !["CPU SIMD", "CUDA GPU"].includes(row.backend)) {
             throw new Error("결과 식별 정보 또는 backend가 올바르지 않습니다.");
@@ -232,7 +246,9 @@ function render(data) {
             <td>${escapeHTML(row.label)}</td>
             <td>${format(s.cpu_average_ms)}</td>
             <td>${format(s.simd_average_ms)}</td>
+            <td>${format(s.gpu_e2e_average_ms)}</td>
             <td>${s.speedup == null ? "—" : format(s.speedup, 2) + "×"}</td>
+            <td>${s.gpu_e2e_speedup == null ? "—" : format(s.gpu_e2e_speedup, 2) + "×"}</td>
             <td>${format(s.cpu_gflops)}</td>
             <td>${format(s.simd_gflops)}</td>
             <td>${escapeHTML(s.max_abs_error ?? "—")}</td>
@@ -241,7 +257,7 @@ function render(data) {
     }).join("");
 
     $("cuda-note").hidden = !data.results.some(row => row.backend === "CUDA GPU");
-
+    const cudaRow = data.results.find(row => row.backend === "CUDA GPU");
     const labels = {
         runner: "실행 이름",
         compiler: "컴파일러",
@@ -257,6 +273,7 @@ function render(data) {
         repeat_description: "반복",
         timing: "측정 범위",
         transfers: "데이터 전송",
+        gpu_e2e_timing: "CUDA 전송 포함 측정 범위",
         validation: "검증",
         formula: "계산식",
         operations_description: "연산량"
@@ -284,13 +301,14 @@ function render(data) {
             <div class="table-wrap">
                 <table>
                     <thead>
-                        <tr><th>회차</th><th>CPU (ms)</th><th>SIMD (ms)</th><th>가속 배율</th></tr>
+                        <tr><th>회차</th><th>CPU (ms)</th><th>SIMD / GPU 계산 (ms)</th><th>CUDA 전송 포함 (ms)</th><th>가속 배율</th></tr>
                     </thead>
                     <tbody>
                         ${row.trials.map(trial => `<tr>
                             <td>${escapeHTML(trial.trial)}</td>
                             <td>${format(trial.cpu_ms)}</td>
                             <td>${format(trial.simd_ms)}</td>
+                            <td>${format(trial.gpu_e2e_ms)}</td>
                             <td>${format(trial.speedup, 2)}×</td>
                         </tr>`).join("")}
                     </tbody>
@@ -346,10 +364,14 @@ function reloadData() {
 function initialize() {
     $("stat").addEventListener("change", draw);
     $("reload").addEventListener("click", reloadData);
-    try {
-        render(window.BENCHMARK_REPORT);
-    } catch (error) {
-        showError(error);
+    if (window.BENCHMARK_REPORT) {
+        try {
+            render(window.BENCHMARK_REPORT);
+        } catch (error) {
+            showError(error);
+        }
+    } else {
+        reloadData();
     }
 }
 
