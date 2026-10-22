@@ -1,0 +1,1 @@
+GOEXPERIMENT=simd go build -o benchmark benchmark.go

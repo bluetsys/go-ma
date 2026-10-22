@@ -1,0 +1,1 @@
+dotnet bin/Release/net*/Benchmark.dll "../Datas/주유소_지역별_평균판매가격-자동차용경유.csv" 100

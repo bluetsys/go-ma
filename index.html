@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-E10YHPJ1VJ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+        gtag("js", new Date());
+
+        gtag("config", "G-E10YHPJ1VJ");
+    </script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CPU · SIMD 벤치마크</title>
+    <link rel="stylesheet" href="./report/style.css">
+    <script src="./report/result-data.js" defer></script>
+    <script src="./report/app.js" defer></script>
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/github-fork-ribbon-css/0.2.3/gh-fork-ribbon.min.css" />
+    <style>
+        .github-fork-ribbon:before {
+            background-color: #090;
+        }
+    </style>
+</head>
+
+<body>
+    <a class="github-fork-ribbon right-top fixed" href="https://github.com/bluetsys/go-ma"
+        data-ribbon="Fork me on GitHub" title="Fork me on GitHub" target="_blank">Fork me on GitHub</a>
+    <main>
+        <h1>CPU · SIMD 벤치마크</h1>
+        <div id="source" class="subtitle" aria-live="polite">결과 로딩 중...</div>
+
+        <div class="toolbar">
+            <label for="stat">차트 기준</label>
+            <select id="stat">
+                <option value="average">평균</option>
+                <option value="median">중앙값</option>
+                <option value="min">최소</option>
+            </select>
+            <button id="reload" type="button">새로고침</button>
+        </div>
+
+        <p id="error" role="alert" hidden></p>
+
+        <div id="content" hidden>
+            <section class="panel">
+                <h2>1. 언어별 CPU · SIMD 실행 시간</h2>
+                <div class="legend">
+                    <span><i class="swatch cpu"></i>CPU</span>
+                    <span><i class="swatch simd"></i>CPU SIMD</span>
+                    <span><i class="swatch gpu"></i>CUDA GPU (SIMD 표기)</span>
+                </div>
+                <div id="comparison"></div>
+                <p class="note">단위: ms · 낮을수록 빠름 · 모든 막대는 같은 축척</p>
+            </section>
+
+            <section class="panel">
+                <h2>2. SIMD 실행 시간 비교</h2>
+                <div id="ranking"></div>
+                <p class="note">단위: ms · 낮을수록 빠름 · 선택한 차트 기준으로 정렬</p>
+            </section>
+
+            <section class="panel">
+                <h2>3. CPU 실행 시간 비교</h2>
+                <div id="cpu-ranking"></div>
+                <p class="note">단위: ms · 낮을수록 빠름 · 선택한 차트 기준으로 정렬</p>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>순위</th>
+                                <th>구현</th>
+                                <th id="cpu-stat-heading">평균 시간 (ms)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cpu-ranking-table"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel combined-panel">
+                <h2>4. SIMD · CPU 통합 비교</h2>
+                <div class="legend">
+                    <span><i class="swatch cpu"></i>CPU</span>
+                    <span><i class="swatch simd"></i>CPU SIMD</span>
+                    <span><i class="swatch gpu"></i>CUDA GPU (SIMD 표기)</span>
+                </div>
+                <div id="combined-ranking"></div>
+                <p class="note">단위: ms · CPU와 SIMD/GPU 전체 결과를 같은 축척으로 비교 · 선택한 차트 기준으로 정렬</p>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>순위</th>
+                                <th>구현</th>
+                                <th>실행 방식</th>
+                                <th id="combined-stat-heading">평균 시간 (ms)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="combined-ranking-table"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel">
+                <h2>평균 성능 및 검증 결과</h2>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>구현</th>
+                                <th>CPU (ms)</th>
+                                <th>SIMD (ms)</th>
+                                <th>가속 배율</th>
+                                <th>CPU GFLOPS</th>
+                                <th>SIMD GFLOPS</th>
+                                <th>최대 오차</th>
+                                <th>검증</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summary"></tbody>
+                    </table>
+                </div>
+                <p id="cuda-note" class="note" hidden>
+                    CUDA는 GPU 실행 결과입니다. 상세 측정 범위를 함께 확인하세요.
+                </p>
+            </section>
+
+            <section class="panel">
+                <h2>회차별 결과 및 실행 환경</h2>
+                <div id="details"></div>
+            </section>
+
+            <section class="panel">
+                <h2>빌드 및 테스트 환경</h2>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>항목</th>
+                                <th>환경</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>운영체제</td><td>Ubuntu 24.04.5 LTS (Noble Numbat), WSL2</td></tr>
+                            <tr><td>커널</td><td>Linux 6.18.54.1-microsoft-standard-WSL2</td></tr>
+                            <tr><td>아키텍처</td><td>x86_64</td></tr>
+                            <tr><td>프로세서</td><td>13th Gen Intel(R) Core(TM) i9-13900K</td></tr>
+                            <tr><td>논리 CPU</td><td>32 (16코어, 코어당 2스레드)</td></tr>
+                            <tr><td>메모리</td><td>62 GiB RAM</td></tr>
+                            <tr><td>스왑</td><td>16 GiB</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="note">메모리 사용량은 측정 시점에 따라 달라질 수 있으므로 총 메모리 용량만 표시합니다.</p>
+            </section>
+
+            <section class="panel">
+                <h2>본 보고서는 openAI GPT-6 Astra 기반으로 작성되었습니다.</h2>
+            </section>
+        </div>
+    </main>
+    <script type="text/javascript">
+        var sc_project = 13139524;
+        var sc_invisible = 1;
+        var sc_security = "83232f9f";
+    </script>
+    <script type="text/javascript" src="https://www.statcounter.com/counter/counter.js" async></script>
+    <noscript>
+        <div class="statcounter">
+            <a title="Web Analytics" href="https://statcounter.com/" target="_blank"><img class="statcounter"
+                    src="https://c.statcounter.com/13139524/0/83232f9f/1/" alt="Web Analytics"
+                    referrerpolicy="no-referrer-when-downgrade" /></a>
+        </div>
+    </noscript>
+    <!-- End of Statcounter Code -->
+</body>
+
+</html>

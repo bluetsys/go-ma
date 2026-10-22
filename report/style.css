@@ -1,0 +1,257 @@
+:root {
+    color-scheme: light;
+    --bg: #f5f7fb;
+    --panel: #fff;
+    --text: #172033;
+    --muted: #637086;
+    --border: #dfe5ee;
+    --cpu: #64748b;
+    --simd: #2563eb;
+    --gpu: #d97706;
+    --error: #b42318;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+main {
+    max-width: 1200px;
+    margin: auto;
+    padding: 28px 20px 48px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 26px;
+}
+
+h2 {
+    margin: 0 0 14px;
+    font-size: 19px;
+}
+
+.subtitle,
+.note {
+    color: var(--muted);
+}
+
+.panel {
+    margin-top: 22px;
+    padding: 22px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 18px;
+}
+
+select,
+button,
+.download {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--panel);
+    color: var(--text);
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+button:disabled {
+    cursor: wait;
+    opacity: .6;
+}
+
+.download {
+    text-decoration: none;
+}
+
+.legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 6px;
+    border-radius: 2px;
+}
+
+.cpu {
+    background: var(--cpu);
+}
+
+.simd {
+    background: var(--simd);
+}
+
+.gpu {
+    background: var(--gpu);
+}
+
+.group {
+    margin: 20px 0;
+}
+
+.group-title {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.bar-row {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr) 106px;
+    gap: 12px;
+    align-items: center;
+    margin-top: 7px;
+}
+
+.track {
+    height: 22px;
+    background: var(--bg);
+}
+
+.bar {
+    height: 100%;
+}
+
+.value {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.scale {
+    display: flex;
+    justify-content: space-between;
+    margin: 12px 118px 0 88px;
+    color: var(--muted);
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap;
+}
+
+th,
+td {
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+th {
+    color: var(--muted);
+    font-weight: 500;
+}
+
+th:first-child,
+td:first-child {
+    text-align: left;
+}
+
+details {
+    border-top: 1px solid var(--border);
+    padding: 14px 0;
+}
+
+summary {
+    cursor: pointer;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.metadata {
+    display: grid;
+    grid-template-columns: 130px minmax(0, 1fr);
+    gap: 6px 12px;
+    margin: 15px 0;
+}
+
+.metadata dt {
+    color: var(--muted);
+}
+
+.metadata dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+#error {
+    color: var(--error);
+    white-space: pre-wrap;
+}
+
+@media (max-width: 600px) {
+    main {
+        padding: 18px 12px;
+    }
+
+    .panel {
+        padding: 15px;
+    }
+
+    .bar-row {
+        grid-template-columns: 60px minmax(0, 1fr) 94px;
+        gap: 7px;
+    }
+
+    .scale {
+        margin-left: 67px;
+        margin-right: 101px;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        color-scheme: dark;
+        --bg: #111827;
+        --panel: #182235;
+        --text: #e5edf8;
+        --muted: #a8b5ca;
+        --border: #344155;
+        --cpu: #94a3b8;
+        --simd: #60a5fa;
+        --gpu: #fbbf24;
+        --error: #ff948c;
+    }
+}
+/* CPU / SIMD combined comparison */
+.combined-panel .bar-row { grid-template-columns: 100px minmax(0, 1fr) 106px; }
+.combined-panel .scale { margin-left: 112px; }
+#cpu-ranking-table td:nth-child(2), #combined-ranking-table td:nth-child(2) { text-align: left; }
+@media (max-width: 600px) {
+    .combined-panel .bar-row { grid-template-columns: 86px minmax(0, 1fr) 94px; gap: 7px; }
+    .combined-panel .scale { margin-left: 93px; }
+}

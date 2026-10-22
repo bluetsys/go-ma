@@ -1,0 +1,1 @@
+nvcc -O3 -std=c++17 --fmad=false -Xcompiler=-ffp-contract=off,-fno-tree-vectorize,-fno-tree-slp-vectorize benchmark.cu -o benchmark

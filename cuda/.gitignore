@@ -1,0 +1,7 @@
+# Compiled CUDA benchmark binary
+/benchmark
+*.o
+*.obj
+*.ptx
+*.cubin
+*.fatbin

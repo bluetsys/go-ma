@@ -1,0 +1,7 @@
+# Compiled benchmark binary
+/benchmark
+
+# Go test and profiling output
+*.test
+*.out
+*.prof

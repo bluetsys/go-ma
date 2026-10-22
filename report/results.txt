@@ -1,0 +1,305 @@
+=========================================================
+Compiler      : GCC 13.3.0
+File          : Datas/주유소_지역별_평균판매가격-자동차용경유.csv
+Environment   : Linux / x86_64 / 32 logical CPUs
+Test          : Pearson correlation of daily price changes / float64
+CPU           : Scalar / single thread
+SIMD          : AVX 256-bit / 4 doubles / single thread
+Array         : 6749 dates / 18 region columns / 112959 valid prices
+Period        : 20080415 - 20261006
+Missing       : 8523 prices / excluded, not zero-filled
+Pairs         : 151 / common consecutive-day returns only
+Observations  : 889329 across all pairs
+Sample counts : 97 / 6748 / 6748 (min / median / max)
+Preprocess    : 36.280 ms / excluded from benchmark
+Timing        : Pair means + centered covariance + correlation
+Loops         : 100 per trial
+Trials        : 5
+Validation    : Absolute tolerance 1.0e-10; zero-variance pairs are undefined
+
+Trial           CPU(ms)       SIMD(ms)      Speedup
+1                89.836         34.587        2.60x
+2                88.636         34.629        2.56x
+3                87.465         32.932        2.66x
+4                88.817         32.498        2.73x
+5                88.834         31.535        2.82x
+
+CPU checksum  : 123.937354174232
+SIMD checksum : 123.937354174232
+Max abs error : 4.99600361081e-15
+Validation    : PASS (151 pairs / tolerance 1.0e-10)
+Undefined     : 0 zero-variance pairs
+CPU average   : 88.717 ms
+SIMD average  : 33.236 ms
+SIMD speedup  : 2.67x
+CPU per run   : 0.887174 ms
+SIMD per run  : 0.332362 ms
+
+일별 가격 변동률 상관계수 상위 10개 지역 쌍
+순위    지역 A      지역 B           Samples      Correlation
+1       전남광주    경기                  97   0.969112097612
+2       전남광주    충남                  97   0.966010194323
+3       충남        경북                6748   0.963612910272
+4       전남광주    경남                  97   0.960824402513
+5       전남광주    경북                  97   0.959174627152
+6       전남광주    강원                  97   0.956114765300
+7       충남        경남                6748   0.949430636659
+8       전남광주    충북                  97   0.946984550598
+9       충북        충남                6748   0.946816397324
+10      강원        충남                6748   0.946400963549
+=========================================================
+Compiler      : NVIDIA CUDA 12.0
+Device        : NVIDIA GeForce RTX 3090
+Environment   : CUDA 8.6 / 32 logical CPUs
+File          : Datas/주유소_지역별_평균판매가격-자동차용경유.csv
+Test          : Pearson correlation of daily price changes / float64
+CPU           : Scalar / single thread
+GPU           : CUDA / SIMT / 256 threads per block
+Array         : 6749 dates / 18 region columns / 112959 valid prices
+Period        : 20080415 - 20261006
+Missing       : 8523 prices / excluded, not zero-filled
+Pairs         : 151 / common consecutive-day returns only
+Observations  : 889329 across all pairs
+Sample counts : 97 / 6748 / 6748 (min / median / max)
+Preprocess    : 33.395 ms / excluded from benchmark
+Upload        : 8.098 ms / packing + allocation + upload / excluded
+Timing        : Wall time; pair means + covariance + correlation
+GPU timing    : Launch + final synchronization included; transfers excluded
+Loops         : 100 per trial
+Trials        : 5
+Validation    : Absolute tolerance 1.0e-10; zero-variance pairs are undefined
+
+Trial           CPU(ms)        GPU(ms)      Speedup
+1                83.806          7.384       11.35x
+2                84.920          6.855       12.39x
+3                89.211          6.334       14.09x
+4               104.116          7.113       14.64x
+5               107.671          6.626       16.25x
+
+CPU checksum  : 123.937354174232
+GPU checksum  : 123.937354174232
+Max abs error : 3.88578058619e-15
+Validation    : PASS (151 pairs / tolerance 1.0e-10)
+Undefined     : 0 zero-variance pairs
+CPU average   : 93.945 ms
+GPU average   : 6.862 ms
+GPU speedup   : 13.69x
+CPU per run   : 0.939449 ms
+GPU per run   : 0.068624 ms
+
+GPU가 CPU보다 약 13.69배 빠릅니다.
+
+일별 가격 변동률 상관계수 상위 10개 지역 쌍
+순위    지역 A      지역 B           Samples      Correlation
+1       전남광주    경기                  97   0.969112097612
+2       전남광주    충남                  97   0.966010194323
+3       충남        경북                6748   0.963612910272
+4       전남광주    경남                  97   0.960824402513
+5       전남광주    경북                  97   0.959174627152
+6       전남광주    강원                  97   0.956114765300
+7       충남        경남                6748   0.949430636659
+8       전남광주    충북                  97   0.946984550598
+9       충북        충남                6748   0.946816397324
+10      강원        충남                6748   0.946400963549
+=========================================================
+Runtime       : .NET 10.0.13
+Environment   : Ubuntu 24.04.5 LTS / X64 / 32 logical CPUs
+File          : Datas/주유소_지역별_평균판매가격-자동차용경유.csv
+Test          : Pearson correlation of daily price changes / float64
+CPU           : Scalar / single thread
+SIMD          : AVX 256-bit / 4 doubles / single thread
+Array         : 6749 dates / 18 region columns / 112959 valid prices
+Period        : 20080415 - 20261006
+Missing       : 8523 / excluded, not zero-filled
+Pairs         : 151
+Observations  : 889329
+Preprocess    : 76.816 ms / excluded
+Timing        : Pair means + centered covariance + correlation
+Loops         : 100 per trial
+Trials        : 5
+Tolerance     : 1.0E-010
+Sample counts : 97 / 6748 / 6748 (min / median / max)
+
+Trial           CPU(ms)       SIMD(ms)      Speedup
+1                86.912         31.404        2.77x
+2                87.537         32.002        2.74x
+3                90.514         32.804        2.76x
+4                84.040         32.275        2.60x
+5                97.913         36.038        2.72x
+
+CPU checksum  : 123.937354174232
+SIMD checksum : 123.937354174232
+Max abs error : 4.99600361081E-15
+Validation    : PASS (151 pairs / tolerance 1.0E-010)
+Undefined     : 0 zero-variance pairs
+CPU average   : 89.383 ms
+SIMD average  : 32.905 ms
+SIMD speedup  : 2.72x
+CPU per run   : 0.893830 ms
+SIMD per run  : 0.329047 ms
+
+일별 가격 변동률 상관계수 상위 10개 지역 쌍
+순위    지역 A      지역 B           Samples      Correlation
+1       전남광주    경기                  97   0.969112097612
+2       전남광주    충남                  97   0.966010194323
+3       충남        경북                6748   0.963612910272
+4       전남광주    경남                  97   0.960824402513
+5       전남광주    경북                  97   0.959174627152
+6       전남광주    강원                  97   0.956114765300
+7       충남        경남                6748   0.949430636659
+8       전남광주    충북                  97   0.946984550598
+9       충북        충남                6748   0.946816397324
+10      강원        충남                6748   0.946400963549
+=========================================================
+Runtime       : go1.27.1-X:simd / amd64
+Environment   : linux / 32 logical CPUs / GOMAXPROCS=32
+File          : Datas/주유소_지역별_평균판매가격-자동차용경유.csv
+Test          : Pearson correlation of daily price changes / float64
+CPU           : Scalar / single thread
+SIMD          : AVX 256-bit / 4 doubles / single thread
+Array         : 6749 dates / 18 region columns / 112959 valid prices
+Period        : 20080415 - 20261006
+Missing       : 8523 / excluded, not zero-filled
+Pairs         : 151
+Observations  : 889329
+Sample counts : 97 / 6748 / 6748 (min / median / max)
+Preprocess    : 25.836 ms / excluded
+Timing        : Pair means + centered covariance + correlation
+Loops         : 100 per trial
+Trials        : 5
+Tolerance     : 1.0e-10
+
+Trial           CPU(ms)       SIMD(ms)      Speedup
+1               105.714         66.075        1.60x
+2                85.419         51.919        1.65x
+3                87.817         46.092        1.91x
+4                94.170         48.111        1.96x
+5               116.125         51.034        2.28x
+
+CPU checksum  : 123.937354174232
+SIMD checksum : 123.937354174232
+Max abs error : 4.99600361081e-15
+Validation    : PASS (151 pairs / tolerance 1.0e-10)
+Undefined     : 0 zero-variance pairs
+CPU average   : 97.849 ms
+SIMD average  : 52.646 ms
+SIMD speedup  : 1.86x
+CPU per run   : 0.978491 ms
+SIMD per run  : 0.526463 ms
+
+일별 가격 변동률 상관계수 상위 10개 지역 쌍
+순위    지역 A      지역 B           Samples      Correlation
+1       전남광주    경기                  97   0.969112097612
+2       전남광주    충남                  97   0.966010194323
+3       충남        경북                6748   0.963612910272
+4       전남광주    경남                  97   0.960824402513
+5       전남광주    경북                  97   0.959174627152
+6       전남광주    강원                  97   0.956114765300
+7       충남        경남                6748   0.949430636659
+8       전남광주    충북                  97   0.946984550598
+9       충북        충남                6748   0.946816397324
+10      강원        충남                6748   0.946400963549
+=========================================================
+Compiler      : Intel oneAPI 2026.2.0
+File          : Datas/주유소_지역별_평균판매가격-자동차용경유.csv
+Environment   : Linux / x86_64 / 32 logical CPUs
+Test          : Pearson correlation of daily price changes / float64
+CPU           : Scalar / single thread
+SIMD          : AVX 256-bit / 4 doubles / single thread
+Array         : 6749 dates / 18 region columns / 112959 valid prices
+Period        : 20080415 - 20261006
+Missing       : 8523 prices / excluded, not zero-filled
+Pairs         : 151 / common consecutive-day returns only
+Observations  : 889329 across all pairs
+Sample counts : 97 / 6748 / 6748 (min / median / max)
+Preprocess    : 39.722 ms / excluded from benchmark
+Timing        : Pair means + centered covariance + correlation
+Loops         : 100 per trial
+Trials        : 5
+Validation    : Absolute tolerance 1.0e-10; zero-variance pairs are undefined
+
+Trial           CPU(ms)       SIMD(ms)      Speedup
+1               104.548         44.865        2.33x
+2                97.137         39.815        2.44x
+3                87.156         31.083        2.80x
+4                86.311         31.594        2.73x
+5                85.008         32.418        2.62x
+
+CPU checksum  : 123.937354174232
+SIMD checksum : 123.937354174232
+Max abs error : 4.99600361081e-15
+Validation    : PASS (151 pairs / tolerance 1.0e-10)
+Undefined     : 0 zero-variance pairs
+CPU average   : 92.032 ms
+SIMD average  : 35.955 ms
+SIMD speedup  : 2.56x
+CPU per run   : 0.920317 ms
+SIMD per run  : 0.359549 ms
+
+일별 가격 변동률 상관계수 상위 10개 지역 쌍
+순위    지역 A      지역 B           Samples      Correlation
+1       전남광주    경기                  97   0.969112097612
+2       전남광주    충남                  97   0.966010194323
+3       충남        경북                6748   0.963612910272
+4       전남광주    경남                  97   0.960824402513
+5       전남광주    경북                  97   0.959174627152
+6       전남광주    강원                  97   0.956114765300
+7       충남        경남                6748   0.949430636659
+8       전남광주    충북                  97   0.946984550598
+9       충북        충남                6748   0.946816397324
+10      강원        충남                6748   0.946400963549
+=========================================================
+Runtime       : Python 3.12.3 / PyTorch 2.14.0+cu130
+Environment   : Linux 6.18.54.1-microsoft-standard-WSL2 / x86_64 / 32 logical CPUs / x86_64
+Device        : NVIDIA GeForce RTX 3090
+File          : Datas/주유소_지역별_평균판매가격-자동차용경유.csv
+Test          : Pearson correlation of daily price changes / float64
+CPU           : PyTorch CPU tensor operations / single thread / not scalar
+SIMD          : PyTorch CUDA GPU / float64 / GPU reported as SIMD
+Array         : 6749 dates / 18 region columns / 112959 valid prices
+Period        : 20080415 - 20261006
+Missing       : 8523 prices / excluded, not zero-filled
+Pairs         : 151 / common consecutive-day returns only
+Observations  : 889329 across all pairs
+Sample counts : 97 / 6748 / 6748 (min / median / max)
+Preprocess    : 211.955 ms / CSV + returns + padded tensors / excluded
+Upload        : 4.416 ms / allocation + upload / excluded
+Timing        : Wall time; means + centered covariance + correlation; tensor temporaries included
+GPU timing    : Python dispatch + kernel launches + final sync included
+Transfers     : Excluded from timing; inputs remain on device
+Operations    : Identical padded batched tensor operations on CPU/GPU; padding masked
+Loops         : 100 per trial
+Trials        : 5
+Validation    : Absolute tolerance 1.0e-10; zero-variance pairs are undefined
+
+Trial           CPU(ms)       SIMD(ms)      Speedup
+1               624.904         62.565        9.99x
+2               680.185         52.336       13.00x
+3               735.780         52.001       14.15x
+4               744.670         50.376       14.78x
+5               545.432         47.443       11.50x
+
+CPU checksum  : 123.937354174232
+SIMD checksum : 123.937354174232
+Max abs error : 5.55111512313e-16
+Validation    : PASS (151 pairs / tolerance 1.0e-10)
+Undefined     : 0 zero-variance pairs
+CPU average   : 666.194 ms
+SIMD average  : 52.944 ms
+SIMD speedup  : 12.58x
+CPU per run   : 6.661941 ms
+SIMD per run  : 0.529443 ms
+
+일별 가격 변동률 상관계수 상위 10개 지역 쌍
+순위    지역 A      지역 B           Samples      Correlation
+1       전남광주    경기                  97   0.969112097612
+2       전남광주    충남                  97   0.966010194323
+3       충남        경북                6748   0.963612910272
+4       전남광주    경남                  97   0.960824402513
+5       전남광주    경북                  97   0.959174627152
+6       전남광주    강원                  97   0.956114765300
+7       충남        경남                6748   0.949430636659
+8       전남광주    충북                  97   0.946984550598
+9       충북        충남                6748   0.946816397324
+10      강원        충남                6748   0.946400963549
+완료: report/result.json, report/result-data.js (6개 실행 결과)
