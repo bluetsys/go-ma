@@ -1,5 +1,5 @@
 =========================================================
-Compiler      : GCC 13.3.0
+Compiler      : GCC 15.2.0
 File          : Datas/주유소_지역별_평균판매가격-자동차용경유.csv
 Environment   : Linux / x86_64 / 32 logical CPUs
 Test          : Pearson correlation of daily price changes / float64
@@ -11,29 +11,32 @@ Missing       : 8523 prices / excluded, not zero-filled
 Pairs         : 151 / common consecutive-day returns only
 Observations  : 889329 across all pairs
 Sample counts : 97 / 6748 / 6748 (min / median / max)
-Preprocess    : 35.501 ms / excluded from benchmark
+Preprocess    : 33.912 ms / excluded from benchmark
 Timing        : Pair means + centered covariance + correlation
 Loops         : 100 per trial
 Trials        : 5
 Validation    : Absolute tolerance 1.0e-10; zero-variance pairs are undefined
 
 Trial           CPU(ms)       SIMD(ms)      Speedup
-1                88.763         32.728        2.71x
-2                94.914         32.617        2.91x
-3               109.678         43.744        2.51x
-4                95.444         38.744        2.46x
-5                87.276         33.057        2.64x
+1                82.974         32.779        2.53x
+2                80.204         31.047        2.58x
+3                80.051         29.611        2.70x
+4                79.026         28.413        2.78x
+5                86.733         30.396        2.85x
 
 CPU checksum  : 123.937354174232
 SIMD checksum : 123.937354174232
 Max abs error : 4.99600361081e-15
 Validation    : PASS (151 pairs / tolerance 1.0e-10)
 Undefined     : 0 zero-variance pairs
-CPU average   : 95.215 ms
-SIMD average  : 36.178 ms
-SIMD speedup  : 2.63x
-CPU per run   : 0.952150 ms
-SIMD per run  : 0.361779 ms
+Operations    : Useful Pearson FLOPs = (10 * observations + 6 * pairs) * loops; sqrt=1; excludes padding/reduction overhead/comparisons/transfers
+CPU GFLOPS    : 10.873415
+SIMD GFLOPS   : 29.210017
+CPU average   : 81.798 ms
+SIMD average  : 30.449 ms
+SIMD speedup  : 2.69x
+CPU per run   : 0.817976 ms
+SIMD per run  : 0.304491 ms
 
 일별 가격 변동률 상관계수 상위 10개 지역 쌍
 순위    지역 A      지역 B           Samples      Correlation
@@ -48,7 +51,7 @@ SIMD per run  : 0.361779 ms
 9       충북        충남                6748   0.946816397324
 10      강원        충남                6748   0.946400963549
 =========================================================
-Compiler      : NVIDIA CUDA 12.0
+Compiler      : NVIDIA CUDA 13.4
 Device        : NVIDIA GeForce RTX 3090
 Environment   : CUDA 8.6 / 32 logical CPUs
 File          : Datas/주유소_지역별_평균판매가격-자동차용경유.csv
@@ -61,8 +64,8 @@ Missing       : 8523 prices / excluded, not zero-filled
 Pairs         : 151 / common consecutive-day returns only
 Observations  : 889329 across all pairs
 Sample counts : 97 / 6748 / 6748 (min / median / max)
-Preprocess    : 39.684 ms / excluded from benchmark
-Upload        : 9.779 ms / packing + allocation + upload / excluded
+Preprocess    : 29.338 ms / excluded from benchmark
+Upload        : 7.633 ms / packing + allocation + upload / excluded
 Timing        : Wall time; pair means + covariance + correlation
 GPU timing    : Launch + final synchronization included; transfers excluded
 GPU end-to-end: Allocation + packing + H2D + kernel + D2H included
@@ -71,26 +74,29 @@ Trials        : 5
 Validation    : Absolute tolerance 1.0e-10; zero-variance pairs are undefined
 
 Trial           CPU(ms)        GPU(ms)    GPU E2E(ms)  GPU speedup  E2E speedup
-1               102.659          6.640        865.287       15.46x        0.12x
-2               111.264          6.919        795.910       16.08x        0.14x
-3                89.564          6.557        724.430       13.66x        0.12x
-4                88.166          6.379        828.254       13.82x        0.11x
-5               102.138          6.816        786.601       14.99x        0.13x
+1                81.924          6.421        661.555       12.76x        0.12x
+2                80.760          6.135        676.626       13.16x        0.12x
+3                82.295          6.363        636.218       12.93x        0.13x
+4                83.041          6.137        647.941       13.53x        0.13x
+5                80.910          6.232        660.423       12.98x        0.12x
 
 CPU checksum  : 123.937354174232
 GPU checksum  : 123.937354174232
 Max abs error : 3.88578058619e-15
 Validation    : PASS (151 pairs / tolerance 1.0e-10)
 Undefined     : 0 zero-variance pairs
-CPU average   : 98.758 ms
-GPU average   : 6.662 ms
-GPU speedup   : 14.82x
-GPU E2E average: 800.096 ms
+Operations    : Useful Pearson FLOPs = (10 * observations + 6 * pairs) * loops; sqrt=1; excludes padding/reduction overhead/comparisons/transfers
+CPU GFLOPS    : 10.874948
+GPU GFLOPS   : 142.131575
+CPU average   : 81.786 ms
+GPU average   : 6.258 ms
+GPU speedup   : 13.07x
+GPU E2E average: 656.553 ms
 GPU E2E speedup: 0.12x
-CPU per run   : 0.987581 ms
-GPU per run   : 0.066621 ms
+CPU per run   : 0.817861 ms
+GPU per run   : 0.062577 ms
 
-GPU가 CPU보다 약 14.82배 빠릅니다.
+GPU가 CPU보다 약 13.07배 빠릅니다.
 
 일별 가격 변동률 상관계수 상위 10개 지역 쌍
 순위    지역 A      지역 B           Samples      Correlation
@@ -106,7 +112,7 @@ GPU가 CPU보다 약 14.82배 빠릅니다.
 10      강원        충남                6748   0.946400963549
 =========================================================
 Runtime       : .NET 10.0.13
-Environment   : Ubuntu 24.04.5 LTS / X64 / 32 logical CPUs
+Environment   : Ubuntu 26.04.1 LTS / X64 / 32 logical CPUs
 File          : Datas/주유소_지역별_평균판매가격-자동차용경유.csv
 Test          : Pearson correlation of daily price changes / float64
 CPU           : Scalar / single thread
@@ -116,7 +122,7 @@ Period        : 20080415 - 20261006
 Missing       : 8523 / excluded, not zero-filled
 Pairs         : 151
 Observations  : 889329
-Preprocess    : 99.220 ms / excluded
+Preprocess    : 71.516 ms / excluded
 Timing        : Pair means + centered covariance + correlation
 Loops         : 100 per trial
 Trials        : 5
@@ -124,22 +130,25 @@ Tolerance     : 1.0E-010
 Sample counts : 97 / 6748 / 6748 (min / median / max)
 
 Trial           CPU(ms)       SIMD(ms)      Speedup
-1               102.164         34.985        2.92x
-2                88.692         35.888        2.47x
-3                96.109         37.972        2.53x
-4                84.781         39.023        2.17x
-5               137.956         46.228        2.98x
+1                86.048         33.416        2.58x
+2                86.499         36.952        2.34x
+3                87.445         34.488        2.54x
+4                83.638         36.250        2.31x
+5                85.038         33.751        2.52x
+Operations    : Useful Pearson FLOPs = (10 * observations + 6 * pairs) * loops; sqrt=1; excludes padding/reduction overhead/comparisons/transfers
+CPU GFLOPS    : 10.374215
+SIMD GFLOPS   : 25.432902
 
 CPU checksum  : 123.937354174232
 SIMD checksum : 123.937354174232
 Max abs error : 4.99600361081E-15
 Validation    : PASS (151 pairs / tolerance 1.0E-010)
 Undefined     : 0 zero-variance pairs
-CPU average   : 101.940 ms
-SIMD average  : 38.819 ms
-SIMD speedup  : 2.63x
-CPU per run   : 1.019402 ms
-SIMD per run  : 0.388194 ms
+CPU average   : 85.734 ms
+SIMD average  : 34.971 ms
+SIMD speedup  : 2.45x
+CPU per run   : 0.857337 ms
+SIMD per run  : 0.349712 ms
 
 일별 가격 변동률 상관계수 상위 10개 지역 쌍
 순위    지역 A      지역 B           Samples      Correlation
@@ -154,7 +163,7 @@ SIMD per run  : 0.388194 ms
 9       충북        충남                6748   0.946816397324
 10      강원        충남                6748   0.946400963549
 =========================================================
-Runtime       : go1.27.1-X:simd / amd64
+Runtime       : go1.27.3-X:simd / amd64
 Environment   : linux / 32 logical CPUs / GOMAXPROCS=32
 File          : Datas/주유소_지역별_평균판매가격-자동차용경유.csv
 Test          : Pearson correlation of daily price changes / float64
@@ -166,29 +175,32 @@ Missing       : 8523 / excluded, not zero-filled
 Pairs         : 151
 Observations  : 889329
 Sample counts : 97 / 6748 / 6748 (min / median / max)
-Preprocess    : 27.379 ms / excluded
+Preprocess    : 27.171 ms / excluded
 Timing        : Pair means + centered covariance + correlation
 Loops         : 100 per trial
 Trials        : 5
 Tolerance     : 1.0e-10
 
 Trial           CPU(ms)       SIMD(ms)      Speedup
-1               115.345         53.161        2.17x
-2                96.104         56.718        1.69x
-3               113.705         47.688        2.38x
-4                89.919         52.904        1.70x
-5                95.311         52.302        1.82x
+1                87.600         41.788        2.10x
+2                83.736         43.096        1.94x
+3                85.074         42.350        2.01x
+4                80.983         44.044        1.84x
+5                87.417         41.811        2.09x
 
 CPU checksum  : 123.937354174232
 SIMD checksum : 123.937354174232
 Max abs error : 4.99600361081e-15
 Validation    : PASS (151 pairs / tolerance 1.0e-10)
 Undefined     : 0 zero-variance pairs
-CPU average   : 102.077 ms
-SIMD average  : 52.555 ms
-SIMD speedup  : 1.94x
-CPU per run   : 1.020767 ms
-SIMD per run  : 0.525549 ms
+Operations    : Useful Pearson FLOPs = (10 * observations + 6 * pairs) * loops; sqrt=1; excludes padding/reduction overhead/comparisons/transfers
+CPU GFLOPS    : 10.468441
+SIMD GFLOPS   : 20.869610
+CPU average   : 84.962 ms
+SIMD average  : 42.618 ms
+SIMD speedup  : 1.99x
+CPU per run   : 0.849620 ms
+SIMD per run  : 0.426179 ms
 
 일별 가격 변동률 상관계수 상위 10개 지역 쌍
 순위    지역 A      지역 B           Samples      Correlation
@@ -215,29 +227,32 @@ Missing       : 8523 prices / excluded, not zero-filled
 Pairs         : 151 / common consecutive-day returns only
 Observations  : 889329 across all pairs
 Sample counts : 97 / 6748 / 6748 (min / median / max)
-Preprocess    : 47.357 ms / excluded from benchmark
+Preprocess    : 32.106 ms / excluded from benchmark
 Timing        : Pair means + centered covariance + correlation
 Loops         : 100 per trial
 Trials        : 5
 Validation    : Absolute tolerance 1.0e-10; zero-variance pairs are undefined
 
 Trial           CPU(ms)       SIMD(ms)      Speedup
-1               104.975         37.383        2.81x
-2               102.213         40.811        2.50x
-3                84.465         34.407        2.45x
-4                83.328         33.326        2.50x
-5                84.551         30.778        2.75x
+1                85.822         29.565        2.90x
+2                76.300         26.739        2.85x
+3                77.171         26.376        2.93x
+4                80.618         26.881        3.00x
+5                83.128         31.182        2.67x
 
 CPU checksum  : 123.937354174232
 SIMD checksum : 123.937354174232
 Max abs error : 4.99600361081e-15
 Validation    : PASS (151 pairs / tolerance 1.0e-10)
 Undefined     : 0 zero-variance pairs
-CPU average   : 91.906 ms
-SIMD average  : 35.341 ms
-SIMD speedup  : 2.60x
-CPU per run   : 0.919064 ms
-SIMD per run  : 0.353412 ms
+Operations    : Useful Pearson FLOPs = (10 * observations + 6 * pairs) * loops; sqrt=1; excludes padding/reduction overhead/comparisons/transfers
+CPU GFLOPS    : 11.033938
+SIMD GFLOPS   : 31.597113
+CPU average   : 80.608 ms
+SIMD average  : 28.149 ms
+SIMD speedup  : 2.86x
+CPU per run   : 0.806076 ms
+SIMD per run  : 0.281488 ms
 
 일별 가격 변동률 상관계수 상위 10개 지역 쌍
 순위    지역 A      지역 B           Samples      Correlation
@@ -252,8 +267,8 @@ SIMD per run  : 0.353412 ms
 9       충북        충남                6748   0.946816397324
 10      강원        충남                6748   0.946400963549
 =========================================================
-Runtime       : Python 3.12.3 / PyTorch 2.14.0+cu130
-Environment   : Linux 6.18.54.1-microsoft-standard-WSL2 / x86_64 / 32 logical CPUs / x86_64
+Runtime       : Python 3.14.4 / PyTorch 2.14.1+cu132
+Environment   : Linux 6.18.54.1-microsoft-standard-WSL2 / x86_64 / 32 logical CPUs / CPU model unavailable
 Device        : NVIDIA GeForce RTX 3090
 File          : Datas/주유소_지역별_평균판매가격-자동차용경유.csv
 Test          : Pearson correlation of daily price changes / float64
@@ -265,8 +280,8 @@ Missing       : 8523 prices / excluded, not zero-filled
 Pairs         : 151 / common consecutive-day returns only
 Observations  : 889329 across all pairs
 Sample counts : 97 / 6748 / 6748 (min / median / max)
-Preprocess    : 238.662 ms / CSV + returns + padded tensors / excluded
-Upload        : 6.215 ms / allocation + upload / excluded
+Preprocess    : 174.528 ms / CSV + returns + padded tensors / excluded
+Upload        : 4.457 ms / allocation + upload / excluded
 Timing        : Wall time; means + centered covariance + correlation; tensor temporaries included
 GPU timing    : Python dispatch + kernel launches + final sync included
 Transfers     : Excluded from timing; inputs remain on device
@@ -276,22 +291,25 @@ Trials        : 5
 Validation    : Absolute tolerance 1.0e-10; zero-variance pairs are undefined
 
 Trial           CPU(ms)       SIMD(ms)      Speedup
-1               692.973         48.552       14.27x
-2               794.455         49.679       15.99x
-3               700.589         50.425       13.89x
-4               697.886         48.855       14.28x
-5               599.079         52.480       11.42x
+1               563.428         50.483       11.16x
+2               523.516         46.283       11.31x
+3               459.096         55.728        8.24x
+4               435.367         49.793        8.74x
+5               440.925         56.143        7.85x
 
 CPU checksum  : 123.937354174232
 SIMD checksum : 123.937354174232
 Max abs error : 5.55111512313e-16
 Validation    : PASS (151 pairs / tolerance 1.0e-10)
 Undefined     : 0 zero-variance pairs
-CPU average   : 696.996 ms
-SIMD average  : 49.998 ms
-SIMD speedup  : 13.94x
-CPU per run   : 6.969964 ms
-SIMD per run  : 0.499983 ms
+Operations    : Useful Pearson FLOPs = (10 * observations + 6 * pairs) * loops; sqrt=1; excludes padding/reduction overhead/comparisons/transfers
+CPU GFLOPS    : 1.835874
+SIMD GFLOPS   : 17.208107
+CPU average   : 484.466 ms
+SIMD average  : 51.686 ms
+SIMD speedup  : 9.37x
+CPU per run   : 4.844665 ms
+SIMD per run  : 0.516861 ms
 
 일별 가격 변동률 상관계수 상위 10개 지역 쌍
 순위    지역 A      지역 B           Samples      Correlation

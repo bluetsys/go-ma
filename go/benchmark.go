@@ -272,7 +272,11 @@ func run() error {
 	cpu, simd := make([]float64, len(d.pairs)), make([]float64, len(d.pairs))
 	fmt.Printf("Runtime       : %s / %s\nEnvironment   : %s / %d logical CPUs / GOMAXPROCS=%d\nFile          : %s\nTest          : Pearson correlation of daily price changes / float64\nCPU           : Scalar / single thread\nSIMD          : AVX 256-bit / 4 doubles / single thread\n", runtime.Version(), runtime.GOARCH, runtime.GOOS, runtime.NumCPU(), runtime.GOMAXPROCS(0), path)
 	fmt.Printf("Array         : %d dates / %d region columns / %d valid prices\nPeriod        : %s - %s\nMissing       : %d / excluded, not zero-filled\nPairs         : %d\nObservations  : %d\n", len(d.dates), len(d.names), d.valid, d.dates[0].Format("20060102"), d.dates[len(d.dates)-1].Format("20060102"), d.missing, len(d.pairs), d.observations)
-	sampleSizes := make([]int, len(d.pairs)); for i := range d.pairs { sampleSizes[i] = len(d.pairs[i].x) }; sort.Ints(sampleSizes)
+	sampleSizes := make([]int, len(d.pairs))
+	for i := range d.pairs {
+		sampleSizes[i] = len(d.pairs[i].x)
+	}
+	sort.Ints(sampleSizes)
 	fmt.Printf("Sample counts : %d / %d / %d (min / median / max)\n", sampleSizes[0], sampleSizes[len(sampleSizes)/2], sampleSizes[len(sampleSizes)-1])
 	fmt.Printf("Preprocess    : %.3f ms / excluded\nTiming        : Pair means + centered covariance + correlation\nLoops         : %d per trial\nTrials        : %d\nTolerance     : %.1e\n", loadMs, loops, trials, tolerance)
 	for i := 0; i < 5; i++ {
@@ -316,6 +320,10 @@ func run() error {
 		order = append(order, i)
 	}
 	fmt.Printf("\nCPU checksum  : %.12f\nSIMD checksum : %.12f\nMax abs error : %.12g\nValidation    : PASS (%d pairs / tolerance %.1e)\nUndefined     : %d zero-variance pairs\n", cpuSum, simdSum, maximum, len(cpu), tolerance, undefined)
+	// Useful Pearson FLOPs; sqrt=1; exclude padding and parallel reduction overhead.
+	usefulFlops := (10.0*float64(d.observations) + 6.0*float64(len(d.pairs))) * float64(loops)
+	fmt.Println("Operations    : Useful Pearson FLOPs = (10 * observations + 6 * pairs) * loops; sqrt=1; excludes padding/reduction overhead/comparisons/transfers")
+	fmt.Printf("CPU GFLOPS    : %.6f\nSIMD GFLOPS   : %.6f\n", usefulFlops/(cpuTotal/trials)/1e6, usefulFlops/(simdTotal/trials)/1e6)
 	fmt.Printf("CPU average   : %.3f ms\nSIMD average  : %.3f ms\nSIMD speedup  : %.2fx\nCPU per run   : %.6f ms\nSIMD per run  : %.6f ms\n", cpuTotal/trials, simdTotal/trials, cpuTotal/simdTotal, cpuTotal/trials/float64(loops), simdTotal/trials/float64(loops))
 	sort.Slice(order, func(a, b int) bool {
 		if simd[order[a]] != simd[order[b]] {

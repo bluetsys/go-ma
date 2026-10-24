@@ -214,6 +214,10 @@ internal static class Program
                 simdTotal += s;
                 Console.WriteLine($"{t + 1,-8} {c,14:F3} {s,14:F3} {c / s,11:F2}x");
             }
+            // Useful Pearson FLOPs; sqrt=1; exclude padding and parallel reduction overhead.
+            double usefulFlops = (10.0 * d.Observations + 6.0 * d.Pairs.Count) * loops;
+            Console.WriteLine("Operations    : Useful Pearson FLOPs = (10 * observations + 6 * pairs) * loops; sqrt=1; excludes padding/reduction overhead/comparisons/transfers");
+            Console.WriteLine($"CPU GFLOPS    : {usefulFlops / (cpuTotal / Trials) / 1e6:F6}\nSIMD GFLOPS   : {usefulFlops / (simdTotal / Trials) / 1e6:F6}");
             Console.WriteLine($"\nCPU checksum  : {cpu.Where(double.IsFinite).Sum():F12}\nSIMD checksum : {simd.Where(double.IsFinite).Sum():F12}\nMax abs error : {maxError:G12}\nValidation    : PASS ({cpu.Length} pairs / tolerance {Tolerance:E1})\nUndefined     : {cpu.Count(double.IsNaN)} zero-variance pairs\nCPU average   : {cpuTotal / Trials:F3} ms\nSIMD average  : {simdTotal / Trials:F3} ms\nSIMD speedup  : {cpuTotal / simdTotal:F2}x\nCPU per run   : {cpuTotal / Trials / loops:F6} ms\nSIMD per run  : {simdTotal / Trials / loops:F6} ms");
             int width = Math.Max(12, d.Names.Max(s => s.Sum(c => c < 128 ? 1 : 2)) + 2), rank = 0;
             Console.WriteLine("\n일별 가격 변동률 상관계수 상위 10개 지역 쌍");

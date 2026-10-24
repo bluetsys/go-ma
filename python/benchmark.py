@@ -239,6 +239,11 @@ def main(argv=None):
             print(f"Max abs error : {maximum:.12g}")
             print(f"Validation    : PASS ({len(pairs)} pairs / tolerance {TOLERANCE:.1e})")
             print(f"Undefined     : {sum(math.isnan(v) for v in cpu_values)} zero-variance pairs")
+            # Useful Pearson FLOPs, excluding tensor padding and reduction overhead.
+            useful_flops = (10 * observations + 6 * len(pairs)) * args.loops
+            print("Operations    : Useful Pearson FLOPs = (10 * observations + 6 * pairs) * loops; sqrt=1; excludes padding/reduction overhead/comparisons/transfers")
+            print(f"CPU GFLOPS    : {useful_flops / (cpu_total / TRIALS) / 1e6:.6f}")
+            print(f"SIMD GFLOPS   : {useful_flops / (simd_total / TRIALS) / 1e6:.6f}")
             print(f"CPU average   : {cpu_total / TRIALS:.3f} ms")
             print(f"SIMD average  : {simd_total / TRIALS:.3f} ms")
             print(f"SIMD speedup  : {cpu_total / simd_total:.2f}x")

@@ -427,6 +427,12 @@ int main(int argc, char** argv) {
         std::printf("Max abs error : %.12g\n", maxError);
         std::printf("Validation    : PASS (%zu pairs / tolerance %.1e)\n", cpu.size(), Tolerance);
         std::printf("Undefined     : %zu zero-variance pairs\n", undefined);
+        // Useful Pearson FLOPs: 10 per observation + 6 per pair (sqrt counts as one).
+        // Excludes parallel reduction overhead, padding, comparisons and transfers.
+        const double usefulFlops = (10.0 * data.observations + 6.0 * data.pairs.size()) * loops;
+        std::printf("Operations    : Useful Pearson FLOPs = (10 * observations + 6 * pairs) * loops; sqrt=1; excludes padding/reduction overhead/comparisons/transfers\n");
+        std::printf("CPU GFLOPS    : %.6f\n", usefulFlops / (cpuTotal / Trials) / 1e6);
+        std::printf("SIMD GFLOPS   : %.6f\n", usefulFlops / (simdTotal / Trials) / 1e6);
         std::printf("CPU average   : %.3f ms\n", cpuTotal / Trials);
         std::printf("SIMD average  : %.3f ms\n", simdTotal / Trials);
         std::printf("SIMD speedup  : %.2fx\n", cpuTotal / simdTotal);

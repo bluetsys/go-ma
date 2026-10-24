@@ -202,6 +202,8 @@ function render(data) {
             <td>${s.gpu_e2e_average_ms == null ? (row.backend === "CUDA GPU" ? "미측정" : "해당 없음") : format(s.gpu_e2e_average_ms)}</td>
             <td>${s.speedup == null ? "—" : format(s.speedup, 2) + "×"}</td>
             <td>${s.gpu_e2e_speedup == null ? (row.backend === "CUDA GPU" ? "미측정" : "해당 없음") : format(s.gpu_e2e_speedup, 2) + "×"}</td>
+            <td>${s.cpu_gflops == null ? "미측정" : format(s.cpu_gflops)}</td>
+            <td>${s.simd_gflops == null ? "미측정" : format(s.simd_gflops)}</td>
             <td>${format(s.max_abs_error, 5)}</td>
             <td>${escapeHTML(validation?.[1] ?? row.metadata.validation ?? "미표기")}</td>
             <td>${escapeHTML(row.metadata.pairs ?? validation?.[2] ?? "—")}</td>

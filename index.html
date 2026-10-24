@@ -164,6 +164,8 @@
                                 <th>CUDA 전송 포함 (ms)</th>
                                 <th>계산 전용 가속</th>
                                 <th>전송 포함 가속</th>
+                                <th>CPU GFLOPS</th>
+                                <th>SIMD / GPU GFLOPS</th>
                                 <th>최대 오차</th>
                                 <th>검증 결과</th>
                                 <th>검증 쌍 수</th>
@@ -173,6 +175,7 @@
                         <tbody id="summary"></tbody>
                     </table>
                 </div>
+                <p class="note">GFLOPS는 유효 연산량 (관측값 수 × 10 + 지역 쌍 수 × 6) × 반복 횟수를 측정 시간으로 나눈 값입니다. 제곱근은 1회로 세며, 병렬 합산 부가 연산·패딩·비교·전송은 연산량에서 제외합니다. SIMD / GPU GFLOPS의 GPU 시간은 전송 제외 기준입니다.</p>
                 <p id="cuda-note" class="note" hidden>
                     CUDA는 GPU 계산 전용 시간과 메모리 할당, 입력 데이터 구성·전송, GPU 계산, 결과 전송까지 포함한 end-to-end 시간을 따로 측정합니다. 기존 GPU 시간에는
                     전송이 포함되지 않습니다.
