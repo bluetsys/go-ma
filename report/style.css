@@ -157,6 +157,23 @@ button:disabled {
     height: 100%;
 }
 
+.bar.compressed {
+    position: relative;
+    background-image: repeating-linear-gradient(120deg, transparent 0 12px, rgba(255, 255, 255, .35) 12px 16px);
+}
+
+.bar.compressed::after {
+    content: "// 축약";
+    position: absolute;
+    right: 6px;
+    top: 0;
+    color: #fff;
+    background: #172033;
+    padding: 0 5px;
+    font-size: 12px;
+    line-height: 22px;
+}
+
 .value {
     text-align: right;
     font-variant-numeric: tabular-nums;

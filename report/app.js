@@ -25,6 +25,10 @@ function showError(error) {
 }
 
 function drawRankingTable(targetId, templateId, items, maximum, mergeLabels = false) {
+    const regularMaximum = items.reduce((max, item) => item.compressScale ? max : Math.max(max, item.value), 0);
+    if (regularMaximum > 0 && items.some(item => item.compressScale && item.value > regularMaximum * 2)) {
+        maximum = regularMaximum * 1.15;
+    }
     const fragment = document.createDocumentFragment();
     const template = $(templateId);
     items.forEach((item, index) => {
@@ -45,9 +49,13 @@ function drawRankingTable(targetId, templateId, items, maximum, mergeLabels = fa
         if (mode) mode.textContent = item.mode;
         row.querySelector('[data-field="value"]').textContent = format(item.value);
         const bar = row.querySelector('.bar');
+        const compressed = item.value > maximum;
         bar.classList.add(item.className);
+        if (compressed) bar.classList.add("compressed");
         bar.style.width = (maximum > 0 ? Math.max(0, Math.min(100, item.value / maximum * 100)) : 0) + '%';
-        bar.setAttribute('aria-label', item.mode + ' ' + format(item.value) + ' ms');
+        const description = item.mode + ' ' + format(item.value) + ' ms' + (compressed ? ' (막대 길이 축약)' : '');
+        bar.setAttribute('aria-label', description);
+        bar.setAttribute('title', description);
         fragment.appendChild(row);
     });
     $(targetId).replaceChildren(fragment);
@@ -66,8 +74,8 @@ function draw() {
         const className = row.backend === "CUDA GPU" ? "gpu" : "simd";
         const acceleratedLabel = row.backend === "CUDA GPU" ? "GPU (복사 제외)" : "SIMD";
         return [
-            {label: row.label, mode: "CPU", value: row.summary[cpuKey], className: "cpu"},
-            {label: row.label, mode: acceleratedLabel, value: row.summary[simdKey], className},
+            {label: row.label, mode: "CPU", value: row.summary[cpuKey], className: "cpu", compressScale: row.backend === "CPU"},
+            ...(row.backend === "CPU" ? [] : [{label: row.label, mode: acceleratedLabel, value: row.summary[simdKey], className}]),
             ...(row.summary.gpu_e2e_average_ms == null ? [] : [{
                 label: row.label, mode: "GPU (복사 포함)",
                 value: row.summary[`gpu_e2e_${stat}_ms`], className: "gpu"
@@ -77,6 +85,7 @@ function draw() {
     drawRankingTable("comparison-table", "combined-ranking-row", comparisonItems, maximum, true);
 
     const simdItems = rows.flatMap(row => {
+        if (row.backend === "CPU") return [];
         const items = [{label: row.label, value: row.summary[simdKey], mode: row.backend === "CUDA GPU" ? "GPU (복사 제외)" : "SIMD", className: row.backend === "CUDA GPU" ? "gpu" : "simd"}];
         if (row.summary.gpu_e2e_average_ms != null) items.push({label: row.label, value: row.summary[`gpu_e2e_${stat}_ms`], mode: "GPU (복사 포함)", className: "gpu"});
         return items;
@@ -92,29 +101,28 @@ function draw() {
         label: row.label,
         mode: "CPU",
         value: row.summary[cpuKey],
-        className: "cpu"
+        className: "cpu",
+        compressScale: row.backend === "CPU"
     })), cpuMaximum);
 
-    const combined = rows.flatMap(row => [
-        {
-            label: row.label,
-            mode: "CPU",
-            value: row.summary[cpuKey],
-            className: "cpu"
-        },
-        {
-            label: row.label,
-            mode: row.backend === "CUDA GPU" ? "GPU (복사 제외)" : "SIMD",
-            value: row.summary[simdKey],
-            className: row.backend === "CUDA GPU" ? "gpu" : "simd"
-        },
-        ...(row.summary.gpu_e2e_average_ms == null ? [] : [{label: row.label, mode: "GPU (복사 포함)", value: row.summary[`gpu_e2e_${stat}_ms`], className: "gpu"}])
-    ]).sort((a, b) => a.value - b.value);
+    const combined = [...comparisonItems].sort((a, b) => a.value - b.value);
 
     const combinedMaximum = combined.reduce((max, item) => Math.max(max, item.value), 0);
 
     drawRankingTable("combined-ranking-table", "combined-ranking-row", combined, combinedMaximum);
     $("combined-title").textContent = `4. SIMD · CPU 통합 비교 (${combined.length}개 항목)`;
+    const acceleratedCount = rows.filter(row => row.backend !== "CPU").length;
+    const transferCount = rows.filter(row => row.summary.gpu_e2e_average_ms != null).length;
+    const counts = `CPU ${rows.length}개, SIMD/GPU 복사 제외 ${acceleratedCount}개, GPU 복사 포함 ${transferCount}개`;
+    $("comparison-note").textContent = `단위: ms · ${counts}를 언어별로 표시합니다.`;
+    $("combined-note").textContent = `단위: ms · ${counts}를 빠른 순으로 표시합니다.`;
+    $("simd-note").textContent = `SIMD/GPU 복사 제외 ${acceleratedCount}개와 GPU 복사 포함 ${transferCount}개를 빠른 순으로 표시합니다.`;
+    const scaleNote = rows.some(row => row.backend === "CPU")
+        ? " · 순수 Python CPU의 긴 막대는 축약 표시하며, 시간은 실제 측정값입니다."
+        : "";
+    $("comparison-note").textContent += scaleNote;
+    $("combined-note").textContent += scaleNote;
+    $("cpu-note").textContent = "단위: ms · 낮을수록 빠름 · 선택한 차트 기준으로 정렬" + scaleNote;
 
     const statLabel = { average: "평균", median: "중앙값", min: "최소" }[stat];
     $("comparison-stat-heading").textContent = `${statLabel} 시간 (ms)`;
@@ -139,6 +147,7 @@ function validate(data) {
             throw new Error("결과 데이터 구조가 올바르지 않습니다.");
         }
         for (const key of required) {
+            if (row.backend === "CPU" && key.startsWith("simd_")) continue;
             if (!Number.isFinite(row.summary[key]) || row.summary[key] < 0) {
                 throw new Error(`유효하지 않은 측정값: ${row.label} / ${key}`);
             }
@@ -152,7 +161,7 @@ function validate(data) {
         if (row.trials.some(trial => trial.gpu_e2e_ms != null && (!Number.isFinite(trial.gpu_e2e_ms) || trial.gpu_e2e_ms <= 0))) {
             throw new Error(`유효하지 않은 CUDA 전송 포함 회차 시간: ${row.label}`);
         }
-        if (!row.id || typeof row.label !== "string" || !["CPU SIMD", "CUDA GPU"].includes(row.backend)) {
+        if (!row.id || typeof row.label !== "string" || !["CPU", "CPU SIMD", "CUDA GPU"].includes(row.backend)) {
             throw new Error("결과 식별 정보 또는 backend가 올바르지 않습니다.");
         }
         if (row.metadata.trial_count !== row.trials.length || row.trials.length === 0) {
@@ -170,7 +179,7 @@ function validate(data) {
         for (const trial of row.trials) {
             if (!trial || !Number.isInteger(trial.trial) || trialIds.has(trial.trial) ||
                 !Number.isFinite(trial.cpu_ms) || trial.cpu_ms <= 0 ||
-                !Number.isFinite(trial.simd_ms) || trial.simd_ms <= 0) {
+                (row.backend !== "CPU" && (!Number.isFinite(trial.simd_ms) || trial.simd_ms <= 0))) {
                 throw new Error(`유효하지 않은 회차별 결과: ${row.label}`);
             }
             trialIds.add(trial.trial);
@@ -198,12 +207,12 @@ function render(data) {
         return `<tr>
             <td>${escapeHTML(row.label)}</td>
             <td>${format(s.cpu_average_ms)}</td>
-            <td>${format(s.simd_average_ms)}</td>
+            <td>${row.backend === "CPU" ? "해당 없음" : format(s.simd_average_ms)}</td>
             <td>${s.gpu_e2e_average_ms == null ? (row.backend === "CUDA GPU" ? "미측정" : "해당 없음") : format(s.gpu_e2e_average_ms)}</td>
             <td>${s.speedup == null ? "—" : format(s.speedup, 2) + "×"}</td>
             <td>${s.gpu_e2e_speedup == null ? (row.backend === "CUDA GPU" ? "미측정" : "해당 없음") : format(s.gpu_e2e_speedup, 2) + "×"}</td>
             <td>${s.cpu_gflops == null ? "미측정" : format(s.cpu_gflops)}</td>
-            <td>${s.simd_gflops == null ? "미측정" : format(s.simd_gflops)}</td>
+            <td>${row.backend === "CPU" ? "해당 없음" : s.simd_gflops == null ? "미측정" : format(s.simd_gflops)}</td>
             <td>${format(s.max_abs_error, 5)}</td>
             <td>${escapeHTML(validation?.[1] ?? row.metadata.validation ?? "미표기")}</td>
             <td>${escapeHTML(row.metadata.pairs ?? validation?.[2] ?? "—")}</td>
@@ -264,7 +273,7 @@ function render(data) {
                             <td>${format(trial.cpu_ms)}</td>
                             <td>${format(trial.simd_ms)}</td>
                             <td>${format(trial.gpu_e2e_ms)}</td>
-                            <td>${format(trial.speedup, 2)}×</td>
+                            <td>${trial.speedup == null ? "해당 없음" : format(trial.speedup, 2) + "×"}</td>
                         </tr>`).join("")}
                     </tbody>
                 </table>

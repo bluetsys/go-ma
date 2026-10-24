@@ -72,7 +72,7 @@
                         <tbody id="comparison-table"></tbody>
                     </table>
                 </div>
-                <p class="note">단위: ms · CPU 6개와 SIMD/GPU 복사 제외 6개에 CUDA 복사 포함 1개를 추가해 표시합니다.</p>
+                <p id="comparison-note" class="note">단위: ms · 언어별 CPU 및 SIMD/GPU 실행 시간을 표시합니다.</p>
             </section>
 
             <section class="panel">
@@ -99,7 +99,7 @@
                     </table>
                 </div>
                 <p class="note">단위: ms · 낮을수록 빠름 · 선택한 차트 기준으로 정렬</p>
-                <p class="note">GPU 복사 제외 6개와 CUDA GPU 메모리 복사 포함 1개를 빠른 순으로 표시합니다.</p>
+                <p id="simd-note" class="note">SIMD/GPU 결과를 빠른 순으로 표시합니다.</p>
             </section>
 
             <section class="panel">
@@ -122,7 +122,7 @@
                         <tbody id="cpu-ranking-table"></tbody>
                     </table>
                 </div>
-                <p class="note">단위: ms · 낮을수록 빠름 · 선택한 차트 기준으로 정렬</p>
+                <p id="cpu-note" class="note">단위: ms · 낮을수록 빠름 · 선택한 차트 기준으로 정렬</p>
             </section>
 
             <section class="panel combined-panel">
@@ -149,7 +149,7 @@
                         <tbody id="combined-ranking-table"></tbody>
                     </table>
                 </div>
-                <p class="note">단위: ms · CPU 6개, SIMD/GPU 복사 제외 6개, CUDA GPU 복사 포함 1개를 빠른 순으로 표시합니다.</p>
+                <p id="combined-note" class="note">단위: ms · CPU 및 SIMD/GPU 결과를 빠른 순으로 표시합니다.</p>
             </section>
 
             <section class="panel">

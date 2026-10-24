@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""PyTorch CPU vs CUDA GPU / float64 Pearson correlation.
+"""Pure Python CPU or PyTorch CPU vs CUDA GPU / float64 Pearson correlation.
 
 python benchmark.py "Datas/주유소_지역별_평균판매가격-자동차용경유.csv" 100
-Requires PyTorch with CUDA support and an NVIDIA GPU.
+python benchmark.py "Datas/주유소_지역별_평균판매가격-자동차용경유.csv" 100 --cpu-only
+Default mode requires PyTorch with CUDA support and an NVIDIA GPU.
+--cpu-only uses only the standard library and validates against math.fsum.
 GPU results use SIMD field names for the existing report parser.
 CPU uses PyTorch tensor operations, one thread (not a scalar baseline).
-CUDA execution could not be tested in the generation environment.
 """
 import argparse
 import csv
@@ -91,6 +92,86 @@ def load_data(path):
     return names, dates, pairs, valid, missing
 
 
+def calculate_python(pairs):
+    """Scalar Pearson correlation using only Python floats and the standard library."""
+    output = []
+    for _, _, x, y in pairs:
+        sx = sy = 0.0
+        for u, v in zip(x, y):
+            sx += u
+            sy += v
+        mx, my = sx / len(x), sy / len(y)
+        xx = yy = xy = 0.0
+        for u, v in zip(x, y):
+            dx, dy = u - mx, v - my
+            xx += dx * dx
+            yy += dy * dy
+            xy += dx * dy
+        output.append(math.nan if xx <= 0 or yy <= 0 else
+                      max(-1.0, min(1.0, xy / (math.sqrt(xx) * math.sqrt(yy)))))
+    return output
+
+
+def run_python_cpu(args):
+    start = time.perf_counter()
+    names, dates, pairs, valid, missing = load_data(args.csv)
+    preprocess_ms = (time.perf_counter() - start) * 1000
+    observations = sum(len(p[2]) for p in pairs)
+    # Independent, accurately summed reference; excluded from timing.
+    reference = []
+    for _, _, x, y in pairs:
+        mx, my = math.fsum(x) / len(x), math.fsum(y) / len(y)
+        xx = math.fsum((v - mx) ** 2 for v in x)
+        yy = math.fsum((v - my) ** 2 for v in y)
+        xy = math.fsum((u - mx) * (v - my) for u, v in zip(x, y))
+        reference.append(math.nan if xx <= 0 or yy <= 0 else
+                         max(-1.0, min(1.0, xy / (math.sqrt(xx) * math.sqrt(yy)))))
+    print(f"Runtime       : Python {platform.python_version()} / pure Python CPU")
+    print("Backend       : CPU")
+    print(f"Environment   : {platform.system()} / {platform.machine()} / single thread")
+    print(f"File          : {args.csv}")
+    print("Test          : Pearson correlation of daily price changes / float64")
+    print("CPU           : Pure Python scalar loops / no PyTorch / single thread")
+    print(f"Array         : {len(dates)} dates / {len(names)} region columns / {valid} valid prices")
+    print(f"Period        : {dates[0]:%Y%m%d} - {dates[-1]:%Y%m%d}")
+    print(f"Missing       : {missing} prices / excluded, not zero-filled")
+    print(f"Pairs         : {len(pairs)}")
+    print(f"Observations  : {observations}")
+    sizes = sorted(len(p[2]) for p in pairs)
+    print(f"Sample counts : {sizes[0]} / {sizes[len(sizes) // 2]} / {sizes[-1]} (min / median / max)")
+    print(f"Preprocess    : {preprocess_ms:.3f} ms / excluded")
+    print("Timing        : Wall time; pair means + centered covariance + correlation")
+    print(f"Loops         : {args.loops} per trial")
+    print(f"Trials        : {TRIALS}")
+    print(f"Tolerance     : {TOLERANCE:.1e}")
+    maximum = validate(calculate_python(pairs), reference)
+    total = 0.0
+    print(f"{'Trial':<8} {'CPU(ms)':>14}")
+    for trial in range(TRIALS):
+        start = time.perf_counter()
+        for _ in range(args.loops):
+            output = calculate_python(pairs)
+        elapsed = (time.perf_counter() - start) * 1000
+        total += elapsed
+        maximum = max(maximum, validate(output, reference))
+        print(f"{trial + 1:<8} {elapsed:14.3f}")
+    print(f"CPU checksum  : {sum(v for v in output if math.isfinite(v)):.12f}")
+    print(f"Max abs error : {maximum:.12g}")
+    print(f"Validation    : PASS ({len(pairs)} pairs / tolerance {TOLERANCE:.1e})")
+    print(f"Undefined     : {sum(math.isnan(v) for v in output)} zero-variance pairs")
+    useful_flops = (10 * observations + 6 * len(pairs)) * args.loops
+    print("Operations    : Useful Pearson FLOPs = (10 * observations + 6 * pairs) * loops; sqrt=1; excludes comparisons")
+    print(f"CPU GFLOPS    : {useful_flops / (total / TRIALS) / 1e6:.6f}")
+    print(f"CPU average   : {total / TRIALS:.3f} ms")
+    print(f"CPU per run   : {total / TRIALS / args.loops:.6f} ms")
+    print("\nTop positively correlated region pairs")
+    order = sorted((i for i, v in enumerate(output) if math.isfinite(v)), key=lambda i: (-output[i], i))[:10]
+    for rank, i in enumerate(order, 1):
+        a, b, x, _ = pairs[i]
+        print(f"{rank:<8}{names[a]}  {names[b]}  {len(x)}  {output[i]:.12f}")
+    return 0
+
+
 def make_tensors(torch, pairs):
     # Pad to equal row lengths; the mask excludes padding from covariance.
     width = max(len(p[2]) for p in pairs)
@@ -158,9 +239,16 @@ def main(argv=None):
     parser.add_argument("csv", nargs="?", default="../Datas/주유소_지역별_평균판매가격-보통휘발유.csv")
     parser.add_argument("loops", nargs="?", type=int, default=100)
     parser.add_argument("--device", type=int, default=0, help="CUDA device index")
+    parser.add_argument("--cpu-only", action="store_true", help="Pure Python CPU; no PyTorch or GPU required")
     args = parser.parse_args(argv)
     if args.loops < 1:
         parser.error("loops must be positive")
+    if args.cpu_only:
+        try:
+            return run_python_cpu(args)
+        except (OSError, ValueError, RuntimeError) as exc:
+            print(f"Error: {exc}", file=sys.stderr)
+            return 1
     try:
         import torch
     except ImportError:

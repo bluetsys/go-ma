@@ -78,6 +78,10 @@ def parse_logs(text, source="log"):
                     rank, cpu_ms, gpu_ms, e2e_ms, gpu_speedup, _ = e2e_match.groups()
                     trials.append({"trial": int(rank), "cpu_ms": float(cpu_ms), "accelerated_ms": float(gpu_ms), "logged_speedup": float(gpu_speedup), "gpu_e2e_ms": float(e2e_ms)})
             match = TRIAL.match(line)
+            if meta.get("Backend") == "CPU" and not pair_section:
+                cpu_match = re.match(rf"^\s*(\d+)\s+({NUMBER})\s*$", line)
+                if cpu_match:
+                    trials.append({"trial": int(cpu_match[1]), "cpu_ms": float(cpu_match[2]), "accelerated_ms": None})
             if match and not pair_section and table_mode != "GPU_E2E":
                 rank, cpu, accelerated, speedup = match.groups()
                 trials.append({"trial": int(rank), "cpu_ms": float(cpu), "accelerated_ms": float(accelerated), "logged_speedup": float(speedup)})
@@ -94,7 +98,7 @@ def parse_logs(text, source="log"):
         if not loops or loops < 1:
             loops = None
             warnings.append("반복 횟수가 없어 회당 시간을 계산할 수 없습니다.")
-        if any(not math.isfinite(t[k]) or t[k] <= 0 for t in trials for k in ("cpu_ms", "accelerated_ms")):
+        if any(not math.isfinite(t[k]) or t[k] <= 0 for t in trials for k in ("cpu_ms", "accelerated_ms") if t[k] is not None):
             raise ValueError(f"{source}: {index + 1}번 실행의 시간이 유효하지 않습니다.")
         expected = integer(meta.get("Trials"))
         if expected is not None and len(trials) != expected:
@@ -105,7 +109,8 @@ def parse_logs(text, source="log"):
         if expected is not None and sorted(trial_numbers) != list(range(1, expected + 1)):
             warnings.append("측정 회차 번호가 선언된 범위와 일치하지 않습니다.")
         cpu_mean = statistics.mean(t["cpu_ms"] for t in trials) if trials else number(meta.get("CPU average"))
-        accel_mean = statistics.mean(t["accelerated_ms"] for t in trials) if trials else number(meta.get(mode + " average"))
+        accelerated = [t["accelerated_ms"] for t in trials if t["accelerated_ms"] is not None]
+        accel_mean = statistics.mean(accelerated) if accelerated else number(meta.get(mode + " average"))
         if not trials:
             warnings.append("회차별 측정값 없음: 로그 요약값을 사용합니다.")
         cpu_run = number(meta.get("CPU per run"))
@@ -142,7 +147,7 @@ def build_report(records, source):
         gpu = "CUDA" in m.get("Compiler", "") or "CUDA" in m.get("SIMD", "") or r["mode"] == "GPU"
         mode = r["mode"]
         cpu = [t["cpu_ms"] for t in r["trials"]]
-        simd = [t["accelerated_ms"] for t in r["trials"]]
+        simd = [t["accelerated_ms"] for t in r["trials"] if t["accelerated_ms"] is not None]
         sample_counts = [p["samples"] for p in r["pairs"]]
         sample_meta = re.search(r"(\d+)\s*/\s*(\d+)\s*/\s*(\d+)", m.get("Sample counts", ""))
         metadata = {
@@ -210,10 +215,10 @@ def build_report(records, source):
             "id": "result-" + str(index),
             "label": r["label"],
             "detail": m.get("Compiler", m.get("Runtime", "")),
-            "backend": "CUDA GPU" if gpu else "CPU SIMD",
+            "backend": "CPU" if m.get("Backend") == "CPU" else "CUDA GPU" if gpu else "CPU SIMD",
             "metadata": metadata,
             "summary": summary,
-            "trials": [{"trial": t["trial"], "cpu_ms": t["cpu_ms"], "simd_ms": t["accelerated_ms"], "speedup": t["cpu_ms"] / t["accelerated_ms"], "gpu_e2e_ms": t.get("gpu_e2e_ms")} for t in r["trials"]],
+            "trials": [{"trial": t["trial"], "cpu_ms": t["cpu_ms"], "simd_ms": t["accelerated_ms"], "speedup": t["cpu_ms"] / t["accelerated_ms"] if t["accelerated_ms"] else None, "gpu_e2e_ms": t.get("gpu_e2e_ms")} for t in r["trials"]],
             "top_pairs": [{"rank": p["rank"], "region_a": p["a"], "region_b": p["b"], "samples": p["samples"], "correlation": p["correlation"]} for p in r["pairs"]],
             "warnings": r["warnings"],
         })

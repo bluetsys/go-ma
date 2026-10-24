@@ -84,6 +84,8 @@ CUDA 측정은 같은 프로그램에서 세 가지 실행 방식을 각각 측�
 
 ## GFLOPS 측정
 
+Python은 기존 PyTorch CPU/GPU 비교 외에 `python3 python/benchmark.py "CSV 경로" 100 --cpu-only`로 순수 Python CPU 계산을 실행할 수 있습니다. 이 모드는 PyTorch·NumPy·GPU 없이 표준 라이브러리와 스칼라 반복문만 사용하며, `math.fsum`으로 별도 계산한 기준값과 검증합니다. `run.sh`는 두 Python 모드를 각각 실행합니다. 순수 Python은 CPU 비교와 통합 표에 포함되며 SIMD/GPU 순위에서는 제외됩니다.
+
 각 벤치마크는 실제 회차 평균 시간으로 CPU 및 SIMD/GPU의 유효 GFLOPS를 계산합니다.
 
 `GFLOPS = (10 × 관측값 수 + 6 × 지역 쌍 수) × 반복 횟수 / (평균 시간(ms) × 1,000,000)`

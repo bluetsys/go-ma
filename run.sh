@@ -20,5 +20,7 @@ echo "========================================================="
 ./cpp/benchmark.icpx "Datas/주유소_지역별_평균판매가격-자동차용경유.csv" 100
 echo "========================================================="
 python3 ./python/benchmark.py "Datas/주유소_지역별_평균판매가격-자동차용경유.csv" 100
+echo "========================================================="
+python3 ./python/benchmark.py "Datas/주유소_지역별_평균판매가격-자동차용경유.csv" 100 --cpu-only
 
 python3 ./report/make_report.py ./report/results.txt

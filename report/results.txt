@@ -11,18 +11,18 @@ Missing       : 8523 prices / excluded, not zero-filled
 Pairs         : 151 / common consecutive-day returns only
 Observations  : 889329 across all pairs
 Sample counts : 97 / 6748 / 6748 (min / median / max)
-Preprocess    : 33.912 ms / excluded from benchmark
+Preprocess    : 31.306 ms / excluded from benchmark
 Timing        : Pair means + centered covariance + correlation
 Loops         : 100 per trial
 Trials        : 5
 Validation    : Absolute tolerance 1.0e-10; zero-variance pairs are undefined
 
 Trial           CPU(ms)       SIMD(ms)      Speedup
-1                82.974         32.779        2.53x
-2                80.204         31.047        2.58x
-3                80.051         29.611        2.70x
-4                79.026         28.413        2.78x
-5                86.733         30.396        2.85x
+1                84.116         27.555        3.05x
+2                79.034         29.714        2.66x
+3                77.223         30.342        2.55x
+4                81.643         30.208        2.70x
+5                77.154         28.144        2.74x
 
 CPU checksum  : 123.937354174232
 SIMD checksum : 123.937354174232
@@ -30,13 +30,13 @@ Max abs error : 4.99600361081e-15
 Validation    : PASS (151 pairs / tolerance 1.0e-10)
 Undefined     : 0 zero-variance pairs
 Operations    : Useful Pearson FLOPs = (10 * observations + 6 * pairs) * loops; sqrt=1; excludes padding/reduction overhead/comparisons/transfers
-CPU GFLOPS    : 10.873415
-SIMD GFLOPS   : 29.210017
-CPU average   : 81.798 ms
-SIMD average  : 30.449 ms
-SIMD speedup  : 2.69x
-CPU per run   : 0.817976 ms
-SIMD per run  : 0.304491 ms
+CPU GFLOPS    : 11.140848
+SIMD GFLOPS   : 30.467472
+CPU average   : 79.834 ms
+SIMD average  : 29.192 ms
+SIMD speedup  : 2.73x
+CPU per run   : 0.798341 ms
+SIMD per run  : 0.291924 ms
 
 일별 가격 변동률 상관계수 상위 10개 지역 쌍
 순위    지역 A      지역 B           Samples      Correlation
@@ -64,8 +64,8 @@ Missing       : 8523 prices / excluded, not zero-filled
 Pairs         : 151 / common consecutive-day returns only
 Observations  : 889329 across all pairs
 Sample counts : 97 / 6748 / 6748 (min / median / max)
-Preprocess    : 29.338 ms / excluded from benchmark
-Upload        : 7.633 ms / packing + allocation + upload / excluded
+Preprocess    : 28.708 ms / excluded from benchmark
+Upload        : 7.525 ms / packing + allocation + upload / excluded
 Timing        : Wall time; pair means + covariance + correlation
 GPU timing    : Launch + final synchronization included; transfers excluded
 GPU end-to-end: Allocation + packing + H2D + kernel + D2H included
@@ -74,11 +74,11 @@ Trials        : 5
 Validation    : Absolute tolerance 1.0e-10; zero-variance pairs are undefined
 
 Trial           CPU(ms)        GPU(ms)    GPU E2E(ms)  GPU speedup  E2E speedup
-1                81.924          6.421        661.555       12.76x        0.12x
-2                80.760          6.135        676.626       13.16x        0.12x
-3                82.295          6.363        636.218       12.93x        0.13x
-4                83.041          6.137        647.941       13.53x        0.13x
-5                80.910          6.232        660.423       12.98x        0.12x
+1                80.525          6.355        637.899       12.67x        0.13x
+2                84.188          6.151        663.361       13.69x        0.13x
+3                81.268          6.318        645.267       12.86x        0.13x
+4                81.511          6.154        632.644       13.25x        0.13x
+5                78.519          6.337        629.569       12.39x        0.12x
 
 CPU checksum  : 123.937354174232
 GPU checksum  : 123.937354174232
@@ -86,17 +86,17 @@ Max abs error : 3.88578058619e-15
 Validation    : PASS (151 pairs / tolerance 1.0e-10)
 Undefined     : 0 zero-variance pairs
 Operations    : Useful Pearson FLOPs = (10 * observations + 6 * pairs) * loops; sqrt=1; excludes padding/reduction overhead/comparisons/transfers
-CPU GFLOPS    : 10.874948
-GPU GFLOPS   : 142.131575
-CPU average   : 81.786 ms
-GPU average   : 6.258 ms
-GPU speedup   : 13.07x
-GPU E2E average: 656.553 ms
-GPU E2E speedup: 0.12x
-CPU per run   : 0.817861 ms
-GPU per run   : 0.062577 ms
+CPU GFLOPS    : 10.953159
+GPU GFLOPS   : 142.008291
+CPU average   : 81.202 ms
+GPU average   : 6.263 ms
+GPU speedup   : 12.97x
+GPU E2E average: 641.748 ms
+GPU E2E speedup: 0.13x
+CPU per run   : 0.812021 ms
+GPU per run   : 0.062632 ms
 
-GPU가 CPU보다 약 13.07배 빠릅니다.
+GPU가 CPU보다 약 12.97배 빠릅니다.
 
 일별 가격 변동률 상관계수 상위 10개 지역 쌍
 순위    지역 A      지역 B           Samples      Correlation
@@ -122,7 +122,7 @@ Period        : 20080415 - 20261006
 Missing       : 8523 / excluded, not zero-filled
 Pairs         : 151
 Observations  : 889329
-Preprocess    : 71.516 ms / excluded
+Preprocess    : 69.051 ms / excluded
 Timing        : Pair means + centered covariance + correlation
 Loops         : 100 per trial
 Trials        : 5
@@ -130,25 +130,25 @@ Tolerance     : 1.0E-010
 Sample counts : 97 / 6748 / 6748 (min / median / max)
 
 Trial           CPU(ms)       SIMD(ms)      Speedup
-1                86.048         33.416        2.58x
-2                86.499         36.952        2.34x
-3                87.445         34.488        2.54x
-4                83.638         36.250        2.31x
-5                85.038         33.751        2.52x
+1                82.843         28.747        2.88x
+2                81.888         34.027        2.41x
+3                83.424         31.438        2.65x
+4                80.079         32.847        2.44x
+5                83.678         27.945        2.99x
 Operations    : Useful Pearson FLOPs = (10 * observations + 6 * pairs) * loops; sqrt=1; excludes padding/reduction overhead/comparisons/transfers
-CPU GFLOPS    : 10.374215
-SIMD GFLOPS   : 25.432902
+CPU GFLOPS    : 10.796236
+SIMD GFLOPS   : 28.690326
 
 CPU checksum  : 123.937354174232
 SIMD checksum : 123.937354174232
 Max abs error : 4.99600361081E-15
 Validation    : PASS (151 pairs / tolerance 1.0E-010)
 Undefined     : 0 zero-variance pairs
-CPU average   : 85.734 ms
-SIMD average  : 34.971 ms
-SIMD speedup  : 2.45x
-CPU per run   : 0.857337 ms
-SIMD per run  : 0.349712 ms
+CPU average   : 82.382 ms
+SIMD average  : 31.001 ms
+SIMD speedup  : 2.66x
+CPU per run   : 0.823824 ms
+SIMD per run  : 0.310007 ms
 
 일별 가격 변동률 상관계수 상위 10개 지역 쌍
 순위    지역 A      지역 B           Samples      Correlation
@@ -175,18 +175,18 @@ Missing       : 8523 / excluded, not zero-filled
 Pairs         : 151
 Observations  : 889329
 Sample counts : 97 / 6748 / 6748 (min / median / max)
-Preprocess    : 27.171 ms / excluded
+Preprocess    : 30.832 ms / excluded
 Timing        : Pair means + centered covariance + correlation
 Loops         : 100 per trial
 Trials        : 5
 Tolerance     : 1.0e-10
 
 Trial           CPU(ms)       SIMD(ms)      Speedup
-1                87.600         41.788        2.10x
-2                83.736         43.096        1.94x
-3                85.074         42.350        2.01x
-4                80.983         44.044        1.84x
-5                87.417         41.811        2.09x
+1                83.298         39.959        2.08x
+2                86.860         45.620        1.90x
+3                86.966         44.295        1.96x
+4                85.306         45.710        1.87x
+5                85.015         39.244        2.17x
 
 CPU checksum  : 123.937354174232
 SIMD checksum : 123.937354174232
@@ -194,13 +194,13 @@ Max abs error : 4.99600361081e-15
 Validation    : PASS (151 pairs / tolerance 1.0e-10)
 Undefined     : 0 zero-variance pairs
 Operations    : Useful Pearson FLOPs = (10 * observations + 6 * pairs) * loops; sqrt=1; excludes padding/reduction overhead/comparisons/transfers
-CPU GFLOPS    : 10.468441
-SIMD GFLOPS   : 20.869610
-CPU average   : 84.962 ms
-SIMD average  : 42.618 ms
+CPU GFLOPS    : 10.403919
+SIMD GFLOPS   : 20.700724
+CPU average   : 85.489 ms
+SIMD average  : 42.966 ms
 SIMD speedup  : 1.99x
-CPU per run   : 0.849620 ms
-SIMD per run  : 0.426179 ms
+CPU per run   : 0.854889 ms
+SIMD per run  : 0.429656 ms
 
 일별 가격 변동률 상관계수 상위 10개 지역 쌍
 순위    지역 A      지역 B           Samples      Correlation
@@ -227,18 +227,18 @@ Missing       : 8523 prices / excluded, not zero-filled
 Pairs         : 151 / common consecutive-day returns only
 Observations  : 889329 across all pairs
 Sample counts : 97 / 6748 / 6748 (min / median / max)
-Preprocess    : 32.106 ms / excluded from benchmark
+Preprocess    : 30.029 ms / excluded from benchmark
 Timing        : Pair means + centered covariance + correlation
 Loops         : 100 per trial
 Trials        : 5
 Validation    : Absolute tolerance 1.0e-10; zero-variance pairs are undefined
 
 Trial           CPU(ms)       SIMD(ms)      Speedup
-1                85.822         29.565        2.90x
-2                76.300         26.739        2.85x
-3                77.171         26.376        2.93x
-4                80.618         26.881        3.00x
-5                83.128         31.182        2.67x
+1                82.978         25.988        3.19x
+2                76.977         26.236        2.93x
+3                81.979         28.226        2.90x
+4                81.580         29.201        2.79x
+5                87.962         33.322        2.64x
 
 CPU checksum  : 123.937354174232
 SIMD checksum : 123.937354174232
@@ -246,13 +246,13 @@ Max abs error : 4.99600361081e-15
 Validation    : PASS (151 pairs / tolerance 1.0e-10)
 Undefined     : 0 zero-variance pairs
 Operations    : Useful Pearson FLOPs = (10 * observations + 6 * pairs) * loops; sqrt=1; excludes padding/reduction overhead/comparisons/transfers
-CPU GFLOPS    : 11.033938
-SIMD GFLOPS   : 31.597113
-CPU average   : 80.608 ms
-SIMD average  : 28.149 ms
-SIMD speedup  : 2.86x
-CPU per run   : 0.806076 ms
-SIMD per run  : 0.281488 ms
+CPU GFLOPS    : 10.807677
+SIMD GFLOPS   : 31.104463
+CPU average   : 82.295 ms
+SIMD average  : 28.595 ms
+SIMD speedup  : 2.88x
+CPU per run   : 0.822952 ms
+SIMD per run  : 0.285946 ms
 
 일별 가격 변동률 상관계수 상위 10개 지역 쌍
 순위    지역 A      지역 B           Samples      Correlation
@@ -280,8 +280,8 @@ Missing       : 8523 prices / excluded, not zero-filled
 Pairs         : 151 / common consecutive-day returns only
 Observations  : 889329 across all pairs
 Sample counts : 97 / 6748 / 6748 (min / median / max)
-Preprocess    : 174.528 ms / CSV + returns + padded tensors / excluded
-Upload        : 4.457 ms / allocation + upload / excluded
+Preprocess    : 185.356 ms / CSV + returns + padded tensors / excluded
+Upload        : 4.157 ms / allocation + upload / excluded
 Timing        : Wall time; means + centered covariance + correlation; tensor temporaries included
 GPU timing    : Python dispatch + kernel launches + final sync included
 Transfers     : Excluded from timing; inputs remain on device
@@ -291,11 +291,11 @@ Trials        : 5
 Validation    : Absolute tolerance 1.0e-10; zero-variance pairs are undefined
 
 Trial           CPU(ms)       SIMD(ms)      Speedup
-1               563.428         50.483       11.16x
-2               523.516         46.283       11.31x
-3               459.096         55.728        8.24x
-4               435.367         49.793        8.74x
-5               440.925         56.143        7.85x
+1               570.135         52.976       10.76x
+2               526.235         47.869       10.99x
+3               459.705         50.531        9.10x
+4               471.882         57.235        8.24x
+5               448.747         45.043        9.96x
 
 CPU checksum  : 123.937354174232
 SIMD checksum : 123.937354174232
@@ -303,13 +303,13 @@ Max abs error : 5.55111512313e-16
 Validation    : PASS (151 pairs / tolerance 1.0e-10)
 Undefined     : 0 zero-variance pairs
 Operations    : Useful Pearson FLOPs = (10 * observations + 6 * pairs) * loops; sqrt=1; excludes padding/reduction overhead/comparisons/transfers
-CPU GFLOPS    : 1.835874
-SIMD GFLOPS   : 17.208107
-CPU average   : 484.466 ms
-SIMD average  : 51.686 ms
-SIMD speedup  : 9.37x
-CPU per run   : 4.844665 ms
-SIMD per run  : 0.516861 ms
+CPU GFLOPS    : 1.795571
+SIMD GFLOPS   : 17.532172
+CPU average   : 495.341 ms
+SIMD average  : 50.731 ms
+SIMD speedup  : 9.76x
+CPU per run   : 4.953407 ms
+SIMD per run  : 0.507307 ms
 
 일별 가격 변동률 상관계수 상위 10개 지역 쌍
 순위    지역 A      지역 B           Samples      Correlation
@@ -323,4 +323,48 @@ SIMD per run  : 0.516861 ms
 8       전남광주    충북                  97   0.946984550598
 9       충북        충남                6748   0.946816397324
 10      강원        충남                6748   0.946400963549
-완료: report/result.json, report/result-data.js (6개 실행 결과)
+=========================================================
+Runtime       : Python 3.14.4 / pure Python CPU
+Backend       : CPU
+Environment   : Linux / x86_64 / single thread
+File          : Datas/주유소_지역별_평균판매가격-자동차용경유.csv
+Test          : Pearson correlation of daily price changes / float64
+CPU           : Pure Python scalar loops / no PyTorch / single thread
+Array         : 6749 dates / 18 region columns / 112959 valid prices
+Period        : 20080415 - 20261006
+Missing       : 8523 prices / excluded, not zero-filled
+Pairs         : 151
+Observations  : 889329
+Sample counts : 97 / 6748 / 6748 (min / median / max)
+Preprocess    : 143.653 ms / excluded
+Timing        : Wall time; pair means + centered covariance + correlation
+Loops         : 100 per trial
+Trials        : 5
+Tolerance     : 1.0e-10
+Trial           CPU(ms)
+1              5429.346
+2              5522.577
+3              5429.653
+4              5488.195
+5              5431.681
+CPU checksum  : 123.937354174232
+Max abs error : 3.88578058619e-15
+Validation    : PASS (151 pairs / tolerance 1.0e-10)
+Undefined     : 0 zero-variance pairs
+Operations    : Useful Pearson FLOPs = (10 * observations + 6 * pairs) * loops; sqrt=1; excludes comparisons
+CPU GFLOPS    : 0.162889
+CPU average   : 5460.291 ms
+CPU per run   : 54.602906 ms
+
+Top positively correlated region pairs
+1       전남광주  경기  97  0.969112097612
+2       전남광주  충남  97  0.966010194323
+3       충남  경북  6748  0.963612910272
+4       전남광주  경남  97  0.960824402513
+5       전남광주  경북  97  0.959174627152
+6       전남광주  강원  97  0.956114765300
+7       충남  경남  6748  0.949430636659
+8       전남광주  충북  97  0.946984550598
+9       충북  충남  6748  0.946816397324
+10      강원  충남  6748  0.946400963549
+완료: report/result.json, report/result-data.js (7개 실행 결과)
