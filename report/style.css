@@ -27,8 +27,7 @@ body {
 }
 
 main {
-    max-width: 1200px;
-    margin: auto;
+    width: 100%;
     padding: 28px 20px 48px;
 }
 
@@ -248,10 +247,45 @@ summary {
     }
 }
 /* CPU / SIMD combined comparison */
-.combined-panel .bar-row { grid-template-columns: 100px minmax(0, 1fr) 106px; }
-.combined-panel .scale { margin-left: 112px; }
-#cpu-ranking-table td:nth-child(2), #combined-ranking-table td:nth-child(2) { text-align: left; }
-@media (max-width: 600px) {
-    .combined-panel .bar-row { grid-template-columns: 86px minmax(0, 1fr) 94px; gap: 7px; }
-    .combined-panel .scale { margin-left: 93px; }
+.cpu-table,
+.combined-table {
+    table-layout: fixed;
+    min-width: 880px;
+}
+.cpu-table th:first-child,
+.combined-table th:first-child {
+    width: 56px;
+}
+.cpu-table th:nth-child(2) {
+    width: 544px;
+}
+.combined-table th:nth-child(2) {
+    width: 364px;
+}
+.combined-table th:nth-child(3) {
+    width: 180px;
+}
+.cpu-table th:last-child,
+.combined-table th:last-child {
+    width: 120px;
+}
+.cpu-table td[data-field="label"],
+.combined-table td[data-field="label"] {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+.cpu-table .chart-column,
+.combined-table .chart-column {
+    text-align: left;
+}
+.combined-table td[data-field="mode"] { text-align: left; }
+.cpu-table td[data-field="label"], .combined-table td[data-field="label"] { text-align: left; }
+
+table thead th {
+    text-align: center;
+}
+
+.cpu-table thead th.chart-column,
+.combined-table thead th.chart-column {
+    text-align: center;
 }

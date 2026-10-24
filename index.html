@@ -56,27 +56,53 @@
                     <span><i class="swatch gpu"></i>GPU 복사 제외</span>
                     <span><i class="swatch gpu"></i>GPU 복사 포함</span>
                 </div>
-                <div id="comparison"></div>
+                <div class="table-wrap">
+                    <table class="combined-table">
+                        <thead>
+                            <tr>
+                                <th>번호</th>
+                                <th>구현</th>
+                                <th>실행 방식</th>
+                                <th class="chart-column">실행 시간 비교</th>
+                                <th id="comparison-stat-heading">평균 시간 (ms)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparison-table"></tbody>
+                    </table>
+                </div>
                 <p class="note">단위: ms · CPU 6개와 SIMD/GPU 복사 제외 6개에 CUDA 복사 포함 1개를 추가해 표시합니다.</p>
             </section>
 
             <section class="panel">
                 <h2>2. SIMD · GPU 실행 시간 비교</h2>
-                <div id="ranking"></div>
+                <div class="table-wrap">
+                    <table class="combined-table">
+                        <thead>
+                            <tr>
+                                <th>순위</th>
+                                <th>구현</th>
+                                <th>실행 방식</th>
+                                <th class="chart-column">실행 시간 비교</th>
+                                <th id="simd-stat-heading">평균 시간 (ms)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="simd-ranking-table"></tbody>
+                    </table>
+                </div>
                 <p class="note">단위: ms · 낮을수록 빠름 · 선택한 차트 기준으로 정렬</p>
                 <p class="note">GPU 복사 제외 6개와 CUDA GPU 메모리 복사 포함 1개를 빠른 순으로 표시합니다.</p>
             </section>
 
             <section class="panel">
                 <h2>3. CPU 실행 시간 비교</h2>
-                <div id="cpu-ranking"></div>
                 <p class="note">단위: ms · 낮을수록 빠름 · 선택한 차트 기준으로 정렬</p>
                 <div class="table-wrap">
-                    <table>
+                    <table class="cpu-table">
                         <thead>
                             <tr>
                                 <th>순위</th>
                                 <th>구현</th>
+                                <th class="chart-column">실행 시간 비교</th>
                                 <th id="cpu-stat-heading">평균 시간 (ms)</th>
                             </tr>
                         </thead>
@@ -93,15 +119,15 @@
                     <span><i class="swatch gpu"></i>GPU 복사 제외</span>
                     <span><i class="swatch gpu"></i>GPU 복사 포함</span>
                 </div>
-                <div id="combined-ranking"></div>
                 <p class="note">단위: ms · CPU 6개, SIMD/GPU 복사 제외 6개, CUDA GPU 복사 포함 1개를 빠른 순으로 표시합니다.</p>
                 <div class="table-wrap">
-                    <table>
+                    <table class="combined-table">
                         <thead>
                             <tr>
                                 <th>순위</th>
                                 <th>구현</th>
                                 <th>실행 방식</th>
+                                <th class="chart-column">실행 시간 비교</th>
                                 <th id="combined-stat-heading">평균 시간 (ms)</th>
                             </tr>
                         </thead>
@@ -122,17 +148,18 @@
                                 <th>CUDA 전송 포함 (ms)</th>
                                 <th>계산 전용 가속</th>
                                 <th>전송 포함 가속</th>
-                                <th>CPU GFLOPS</th>
-                                <th>SIMD GFLOPS</th>
                                 <th>최대 오차</th>
-                                <th>검증</th>
+                                <th>검증 결과</th>
+                                <th>검증 쌍 수</th>
+                                <th>허용 오차</th>
                             </tr>
                         </thead>
                         <tbody id="summary"></tbody>
                     </table>
                 </div>
                 <p id="cuda-note" class="note" hidden>
-                    CUDA는 GPU 계산 전용 시간과 메모리 할당, 입력 데이터 구성·전송, GPU 계산, 결과 전송까지 포함한 end-to-end 시간을 따로 측정합니다. 기존 GPU 시간에는 전송이 포함되지 않습니다.
+                    CUDA는 GPU 계산 전용 시간과 메모리 할당, 입력 데이터 구성·전송, GPU 계산, 결과 전송까지 포함한 end-to-end 시간을 따로 측정합니다. 기존 GPU 시간에는
+                    전송이 포함되지 않습니다.
                 </p>
             </section>
             <section class="panel">
@@ -151,13 +178,34 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td>운영체제</td><td>Ubuntu 24.04.5 LTS (Noble Numbat), WSL2</td></tr>
-                            <tr><td>커널</td><td>Linux 6.18.54.1-microsoft-standard-WSL2</td></tr>
-                            <tr><td>아키텍처</td><td>x86_64</td></tr>
-                            <tr><td>프로세서</td><td>13th Gen Intel(R) Core(TM) i9-13900K</td></tr>
-                            <tr><td>논리 CPU</td><td>32 (16코어, 코어당 2스레드)</td></tr>
-                            <tr><td>메모리</td><td>62 GiB RAM</td></tr>
-                            <tr><td>스왑</td><td>16 GiB</td></tr>
+                            <tr>
+                                <td>운영체제</td>
+                                <td>Ubuntu 24.04.5 LTS (Noble Numbat), WSL2</td>
+                            </tr>
+                            <tr>
+                                <td>커널</td>
+                                <td>Linux 6.18.54.1-microsoft-standard-WSL2</td>
+                            </tr>
+                            <tr>
+                                <td>아키텍처</td>
+                                <td>x86_64</td>
+                            </tr>
+                            <tr>
+                                <td>프로세서</td>
+                                <td>13th Gen Intel(R) Core(TM) i9-13900K</td>
+                            </tr>
+                            <tr>
+                                <td>논리 CPU</td>
+                                <td>32 (16코어, 코어당 2스레드)</td>
+                            </tr>
+                            <tr>
+                                <td>메모리</td>
+                                <td>62 GiB RAM</td>
+                            </tr>
+                            <tr>
+                                <td>스왑</td>
+                                <td>16 GiB</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -169,6 +217,28 @@
             </section>
         </div>
     </main>
+    <template id="cpu-ranking-row">
+        <tr>
+            <td data-field="rank"></td>
+            <td data-field="label"></td>
+            <td class="chart-column">
+                <div class="track"><div class="bar" role="img"></div></div>
+            </td>
+            <td data-field="value"></td>
+        </tr>
+    </template>
+    <template id="combined-ranking-row">
+        <tr>
+            <td data-field="rank"></td>
+            <td data-field="label"></td>
+            <td data-field="mode"></td>
+            <td class="chart-column">
+                <div class="track"><div class="bar" role="img"></div></div>
+            </td>
+            <td data-field="value"></td>
+        </tr>
+    </template>
+
     <script type="text/javascript">
         var sc_project = 13139524;
         var sc_invisible = 1;

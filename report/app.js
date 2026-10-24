@@ -24,74 +24,37 @@ function showError(error) {
     if (!report) $("source").textContent = "로딩 실패";
 }
 
-function bar(label, value, maximum, className) {
-    const width = maximum > 0 ? Math.max(0, Math.min(100, value / maximum * 100)) : 0;
-    return `<div class="bar-row">
-        <span>${escapeHTML(label)}</span>
-        <div class="track">
-            <div class="bar ${className}" style="width:${width}%"
-                role="img" aria-label="${escapeHTML(label)} ${format(value)} ms"></div>
-        </div>
-        <span class="value">${format(value)} ms</span>
-    </div>`;
-}
-
-function scale(maximum) {
-    return `<div class="scale">
-        <span>0</span>
-        <span>${format(maximum / 2, 1)}</span>
-        <span>${format(maximum, 1)} ms</span>
-    </div>`;
-}
-
-// 이전 index.html에서도 추가 비교 화면이 표시되도록 누락된 영역을 생성합니다.
-function ensureComparisonPanels() {
-    const rankingPanel = $("ranking")?.closest("section");
-    if (!rankingPanel) return;
-
-    if (!$("cpu-ranking")) {
-        rankingPanel.insertAdjacentHTML("afterend", `
-            <section class="panel">
-                <h2>CPU 실행 시간 비교</h2>
-                <div id="cpu-ranking"></div>
-                <p class="note">단위: ms · 낮을수록 빠름 · 선택한 차트 기준으로 정렬</p>
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr><th>순위</th><th>구현</th><th id="cpu-stat-heading">평균 시간 (ms)</th></tr>
-                        </thead>
-                        <tbody id="cpu-ranking-table"></tbody>
-                    </table>
-                </div>
-            </section>`);
-    }
-
-    if (!$("combined-ranking")) {
-        $("cpu-ranking").closest("section").insertAdjacentHTML("afterend", `
-            <section class="panel combined-panel">
-                <h2>SIMD · CPU 통합 비교</h2>
-                <div class="legend">
-                    <span><i class="swatch cpu"></i>CPU</span>
-                    <span><i class="swatch simd"></i>CPU SIMD</span>
-                    <span><i class="swatch gpu"></i>CUDA GPU (SIMD 표기)</span>
-                </div>
-                <div id="combined-ranking"></div>
-                <p class="note">단위: ms · CPU와 SIMD/GPU 전체 결과를 같은 축척으로 비교</p>
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr><th>순위</th><th>구현</th><th>실행 방식</th><th id="combined-stat-heading">평균 시간 (ms)</th></tr>
-                        </thead>
-                        <tbody id="combined-ranking-table"></tbody>
-                    </table>
-                </div>
-            </section>`);
-    }
+function drawRankingTable(targetId, templateId, items, maximum, mergeLabels = false) {
+    const fragment = document.createDocumentFragment();
+    const template = $(templateId);
+    items.forEach((item, index) => {
+        const row = template.content.cloneNode(true);
+        row.querySelector('[data-field="rank"]').textContent = index + 1;
+        const label = row.querySelector('[data-field="label"]');
+        if (mergeLabels && index > 0 && items[index - 1].label === item.label) {
+            label.remove();
+        } else {
+            label.textContent = item.label;
+            if (mergeLabels) {
+                let span = 1;
+                while (index + span < items.length && items[index + span].label === item.label) span++;
+                label.rowSpan = span;
+            }
+        }
+        const mode = row.querySelector('[data-field="mode"]');
+        if (mode) mode.textContent = item.mode;
+        row.querySelector('[data-field="value"]').textContent = format(item.value);
+        const bar = row.querySelector('.bar');
+        bar.classList.add(item.className);
+        bar.style.width = (maximum > 0 ? Math.max(0, Math.min(100, item.value / maximum * 100)) : 0) + '%';
+        bar.setAttribute('aria-label', item.mode + ' ' + format(item.value) + ' ms');
+        fragment.appendChild(row);
+    });
+    $(targetId).replaceChildren(fragment);
 }
 
 function draw() {
     if (!report) return;
-    ensureComparisonPanels();
 
     const stat = $("stat").value;
     const cpuKey = `cpu_${stat}_ms`;
@@ -99,16 +62,19 @@ function draw() {
     const rows = report.results;
     const maximum = rows.reduce((max, row) => Math.max(max, row.summary[cpuKey], row.summary[simdKey], row.summary[`gpu_e2e_${stat}_ms`] ?? 0), 0);
 
-    $("comparison").innerHTML = rows.map(row => {
+    const comparisonItems = rows.flatMap(row => {
         const className = row.backend === "CUDA GPU" ? "gpu" : "simd";
         const acceleratedLabel = row.backend === "CUDA GPU" ? "GPU (복사 제외)" : "SIMD";
-        return `<div class="group">
-            <div class="group-title">${escapeHTML(row.label)}</div>
-            ${bar("CPU", row.summary[cpuKey], maximum, "cpu")}
-            ${bar(acceleratedLabel, row.summary[simdKey], maximum, className)}
-            ${row.summary.gpu_e2e_average_ms == null ? "" : bar("GPU (복사 포함)", row.summary[`gpu_e2e_${stat}_ms`], maximum, "gpu")}
-        </div>`;
-    }).join("") + scale(maximum);
+        return [
+            {label: row.label, mode: "CPU", value: row.summary[cpuKey], className: "cpu"},
+            {label: row.label, mode: acceleratedLabel, value: row.summary[simdKey], className},
+            ...(row.summary.gpu_e2e_average_ms == null ? [] : [{
+                label: row.label, mode: "GPU (복사 포함)",
+                value: row.summary[`gpu_e2e_${stat}_ms`], className: "gpu"
+            }])
+        ];
+    });
+    drawRankingTable("comparison-table", "combined-ranking-row", comparisonItems, maximum, true);
 
     const simdItems = rows.flatMap(row => {
         const items = [{label: row.label, value: row.summary[simdKey], mode: row.backend === "CUDA GPU" ? "GPU (복사 제외)" : "SIMD", className: row.backend === "CUDA GPU" ? "gpu" : "simd"}];
@@ -117,24 +83,17 @@ function draw() {
     }).sort((a, b) => a.value - b.value);
     const simdMaximum = simdItems.reduce((max, item) => Math.max(max, item.value), 0);
 
-    $("ranking").innerHTML = simdItems.map(item => `<div class="group">
-        <div class="group-title">${escapeHTML(item.label)} · ${escapeHTML(item.mode)}</div>
-        ${bar(item.mode, item.value, simdMaximum, item.className)}
-    </div>`).join("") + scale(simdMaximum);
+    drawRankingTable("simd-ranking-table", "combined-ranking-row", simdItems, simdMaximum);
 
     const cpuSorted = [...rows].sort((a, b) => a.summary[cpuKey] - b.summary[cpuKey]);
     const cpuMaximum = cpuSorted.reduce((max, row) => Math.max(max, row.summary[cpuKey]), 0);
 
-    $("cpu-ranking").innerHTML = cpuSorted.map((row, index) => `<div class="group">
-        <div class="group-title">${index + 1}. ${escapeHTML(row.label)}</div>
-        ${bar("CPU", row.summary[cpuKey], cpuMaximum, "cpu")}
-    </div>`).join("") + scale(cpuMaximum);
-
-    $("cpu-ranking-table").innerHTML = cpuSorted.map((row, index) => `<tr>
-        <td>${index + 1}</td>
-        <td>${escapeHTML(row.label)}</td>
-        <td>${format(row.summary[cpuKey])}</td>
-    </tr>`).join("");
+    drawRankingTable("cpu-ranking-table", "cpu-ranking-row", cpuSorted.map(row => ({
+        label: row.label,
+        mode: "CPU",
+        value: row.summary[cpuKey],
+        className: "cpu"
+    })), cpuMaximum);
 
     const combined = rows.flatMap(row => [
         {
@@ -154,20 +113,12 @@ function draw() {
 
     const combinedMaximum = combined.reduce((max, item) => Math.max(max, item.value), 0);
 
-    $("combined-ranking").innerHTML = combined.map((item, index) => `<div class="group">
-        <div class="group-title">${index + 1}. ${escapeHTML(item.label)} · ${escapeHTML(item.mode)}</div>
-        ${bar(item.className === "cpu" ? "CPU" : "SIMD", item.value, combinedMaximum, item.className)}
-    </div>`).join("") + scale(combinedMaximum);
-
-    $("combined-ranking-table").innerHTML = combined.map((item, index) => `<tr>
-        <td>${index + 1}</td>
-        <td>${escapeHTML(item.label)}</td>
-        <td>${escapeHTML(item.mode)}</td>
-        <td>${format(item.value)}</td>
-    </tr>`).join("");
+    drawRankingTable("combined-ranking-table", "combined-ranking-row", combined, combinedMaximum);
     $("combined-title").textContent = `4. SIMD · CPU 통합 비교 (${combined.length}개 항목)`;
 
     const statLabel = { average: "평균", median: "중앙값", min: "최소" }[stat];
+    $("comparison-stat-heading").textContent = `${statLabel} 시간 (ms)`;
+    $("simd-stat-heading").textContent = `${statLabel} 시간 (ms)`;
     $("cpu-stat-heading").textContent = `${statLabel} 시간 (ms)`;
     $("combined-stat-heading").textContent = `${statLabel} 시간 (ms)`;
 }
@@ -242,17 +193,19 @@ function render(data) {
 
     $("summary").innerHTML = data.results.map(row => {
         const s = row.summary;
+        const validation = row.metadata.validation?.match(/^(\S+)\s*\((\d+)\s+pairs\s*\/\s*tolerance\s+([^\s)]+)\)/i);
+        const tolerance = row.metadata.tolerance ?? (validation ? Number(validation[3]) : null);
         return `<tr>
             <td>${escapeHTML(row.label)}</td>
             <td>${format(s.cpu_average_ms)}</td>
             <td>${format(s.simd_average_ms)}</td>
-            <td>${format(s.gpu_e2e_average_ms)}</td>
+            <td>${s.gpu_e2e_average_ms == null ? (row.backend === "CUDA GPU" ? "미측정" : "해당 없음") : format(s.gpu_e2e_average_ms)}</td>
             <td>${s.speedup == null ? "—" : format(s.speedup, 2) + "×"}</td>
-            <td>${s.gpu_e2e_speedup == null ? "—" : format(s.gpu_e2e_speedup, 2) + "×"}</td>
-            <td>${format(s.cpu_gflops)}</td>
-            <td>${format(s.simd_gflops)}</td>
-            <td>${escapeHTML(s.max_abs_error ?? "—")}</td>
-            <td>${escapeHTML(row.metadata.validation ?? "미표기")}</td>
+            <td>${s.gpu_e2e_speedup == null ? (row.backend === "CUDA GPU" ? "미측정" : "해당 없음") : format(s.gpu_e2e_speedup, 2) + "×"}</td>
+            <td>${format(s.max_abs_error, 5)}</td>
+            <td>${escapeHTML(validation?.[1] ?? row.metadata.validation ?? "미표기")}</td>
+            <td>${escapeHTML(row.metadata.pairs ?? validation?.[2] ?? "—")}</td>
+            <td>${typeof tolerance === "number" && Number.isFinite(tolerance) ? tolerance.toLocaleString("en-US", {useGrouping: false, maximumFractionDigits: 20}) : "—"}</td>
         </tr>`;
     }).join("");
 
