@@ -101,6 +101,24 @@ button:disabled {
     border-radius: 2px;
 }
 
+.panel-heading {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 28px;
+    margin-bottom: 14px;
+}
+
+.panel-heading h2,
+.panel-heading .legend {
+    margin: 0;
+}
+
+.panel-heading .legend {
+    margin-left: auto;
+    justify-content: flex-end;
+}
+
 .cpu {
     background: var(--cpu);
 }
