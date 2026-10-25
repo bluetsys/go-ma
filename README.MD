@@ -2,6 +2,8 @@
 
 C++, Intel oneAPI C++, CUDA, C#, Go, Python으로 구현한 주유소 지역별 평균 판매가격 데이터 처리 벤치마크입니다. 구현별 CPU 및 SIMD/GPU 실행 시간과 검증 결과를 `index.html`에서 비교할 수 있습니다.
 
+Python에는 기존 PyTorch CPU/GPU 비교에 더해, PyTorch·NumPy 없이 표준 라이브러리만 사용하는 순수 Python CPU 구현을 추가했습니다. 두 Python 구현의 결과는 보고서에서 별도 항목으로 표시합니다.
+
 추가로 `analyze/README.MD`의 실제 데이터 C# 분석 및 보고서 작성 예제와 `AppleSilicon/README.MD`의 Apple Silicon 벤치마크 내용을 추가할 예정입니다.
 
 ## 데이터 출처
@@ -14,7 +16,7 @@ C++, Intel oneAPI C++, CUDA, C#, Go, Python으로 구현한 주유소 지역별 
 - `cuda/`: CUDA GPU 구현
 - `dotnet/`: C# 구현
 - `go/`: Go 구현
-- `python/`: PyTorch 기반 Python 구현
+- `python/`: 순수 Python CPU 구현(`--cpu-only`) 및 PyTorch CPU/CUDA GPU 비교 구현
 - `Datas/`: 오피넷에서 제공하는 지역별 평균 판매가격 CSV 파일
 - `report/`: 실행 결과 로그, HTML 보고서 데이터, 보고서 생성기
 - `index.html`: 결과 시각화 페이지
@@ -30,7 +32,11 @@ C++, Intel oneAPI C++, CUDA, C#, Go, Python으로 구현한 주유소 지역별 
 - CUDA: NVIDIA CUDA Toolkit, 지원되는 NVIDIA GPU 및 드라이버
 - C#: .NET SDK
 - Go: Go 도구체인
-- Python: Python 3 및 Python 구현에 필요한 PyTorch 설치. CUDA 실행에는 CUDA를 지원하는 PyTorch와 호환되는 NVIDIA GPU 및 드라이버가 필요합니다.
+- Python: 순수 Python CPU 모드는 Python 3만 필요합니다. PyTorch CPU/GPU 비교 모드는 CUDA를 지원하는 PyTorch와 호환되는 NVIDIA GPU 및 드라이버가 필요합니다.
+
+PyTorch는 NVIDIA GPU용 **CUDA**, AMD GPU용 **ROCm**, Mac(macOS) GPU 가속용 **MPS(Metal Performance Shaders)** 백엔드를 지원합니다. 하드웨어와 운영체제에 맞는 PyTorch 빌드 및 드라이버를 사용하세요. 설치 안내는 [PyTorch 공식 설치 문서](https://pytorch.org/get-started/locally/), Mac GPU 지원은 [MPS 공식 문서](https://docs.pytorch.org/docs/stable/notes/mps.html)를 참고하세요.
+
+현재 이 저장소의 PyTorch 벤치마크는 CUDA 환경에서 실행·검증한 코드이며, MPS 장치 선택은 아직 구현하지 않았습니다.
 
 `build.sh`는 C++, CUDA, C# 및 Go 프로그램을 빌드합니다. Intel oneAPI 환경의 `setvars.sh` 경로는 `cpp/build.sh`에 설정되어 있으므로, 설치 위치가 다르면 해당 경로를 환경에 맞게 수정하세요.
 
@@ -44,6 +50,14 @@ C++, Intel oneAPI C++, CUDA, C#, Go, Python으로 구현한 주유소 지역별 
 ```
 
 `run.sh`는 각 벤치마크를 실행해 출력을 `report/results.txt`에 저장하고, 완료 후 `report/result.json`과 `report/result-data.js`를 생성합니다. 실행 스크립트는 현재 프로젝트 폴더를 기준으로 경로를 설정합니다.
+
+순수 Python CPU만 실행하려면 다음 명령을 사용합니다. PyTorch나 GPU는 필요하지 않습니다.
+
+```bash
+python3 python/benchmark.py "Datas/주유소_지역별_평균판매가격-자동차용경유.csv" 100 --cpu-only
+```
+
+이 모드는 스칼라 반복문으로 계산하고, `math.fsum`으로 별도 계산한 기준값과 검증합니다. `run.sh`는 순수 Python CPU와 기존 PyTorch CPU/GPU 비교를 각각 실행합니다. 순수 Python 결과는 CPU 비교와 통합 표에 포함되며 SIMD/GPU 순위에서는 제외됩니다.
 
 ## 결과 보기
 
@@ -83,8 +97,6 @@ CUDA 측정은 같은 프로그램에서 세 가지 실행 방식을 각각 측�
 측정 대상은 2008-04-15부터 2026-10-06까지의 자동차용 경유 가격 데이터에서 계산한 151개 지역 쌍의 일별 가격 변동률 피어슨 상관계수입니다. 기록된 구현은 1e-10 허용 오차 기준으로 검증을 통과했습니다. 이 값은 제공된 WSL2/i9-13900K 환경의 예시이며, 다른 장비나 실행 조건에서의 성능을 보장하지 않습니다. 전체 결과와 개별 회차는 `report/results.txt` 및 `index.html`에서 확인할 수 있습니다.
 
 ## GFLOPS 측정
-
-Python은 기존 PyTorch CPU/GPU 비교 외에 `python3 python/benchmark.py "CSV 경로" 100 --cpu-only`로 순수 Python CPU 계산을 실행할 수 있습니다. 이 모드는 PyTorch·NumPy·GPU 없이 표준 라이브러리와 스칼라 반복문만 사용하며, `math.fsum`으로 별도 계산한 기준값과 검증합니다. `run.sh`는 두 Python 모드를 각각 실행합니다. 순수 Python은 CPU 비교와 통합 표에 포함되며 SIMD/GPU 순위에서는 제외됩니다.
 
 각 벤치마크는 실제 회차 평균 시간으로 CPU 및 SIMD/GPU의 유효 GFLOPS를 계산합니다.
 
